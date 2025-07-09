@@ -36,6 +36,7 @@ export const CallApiSchema = z.object({
     .record(z.string())
     .optional()
     .describe("Authentication configuration (api keys, tokens, etc.)"),
+  base_url: z.string().optional().describe("Base URL for the API"),
 });
 
 export const DescribeApiSchema = z.object({

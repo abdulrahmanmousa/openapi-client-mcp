@@ -121,14 +121,14 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
       };
     }
 
-    // Determine base URL
-    let baseUrl = apiInfo.servers?.[0];
+    // Determine base URL - prioritize provided base_url, then use OpenAPI servers
+    let baseUrl = params.base_url || apiInfo.servers?.[0];
     if (!baseUrl) {
       return {
         content: [
           {
             type: "text",
-            text: `No server URL found in OpenAPI specification. Please ensure the API specification includes server information.`,
+            text: `No server URL found. Please either:\n1. Ensure the OpenAPI specification includes server information, or\n2. Provide a base_url parameter in your API call`,
           } as TextContent,
         ],
       };
