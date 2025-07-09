@@ -13,15 +13,15 @@ Add the following to your Claude Desktop configuration file:
 ```json
 {
   "mcpServers": {
-    "universal-openapi-mcp": {
+    "openapi-client-mcp": {
       "command": "node",
-      "args": ["/absolute/path/to/universal-openapi-mcp/dist/index.js"]
+      "args": ["/absolute/path/to/openapi-client-mcp/dist/index.js"]
     }
   }
 }
 ```
 
-**Important**: Replace `/absolute/path/to/universal-openapi-mcp/` with the actual absolute path to this project directory.
+**Important**: Replace `/absolute/path/to/openapi-client-mcp/` with the actual absolute path to this project directory.
 
 ## VS Code MCP Configuration
 
@@ -30,7 +30,7 @@ For VS Code integration, the `.vscode/mcp.json` file is already configured:
 ```json
 {
   "servers": {
-    "universal-openapi-mcp": {
+    "openapi-client-mcp": {
       "type": "stdio",
       "command": "node",
       "args": [
@@ -58,13 +58,13 @@ Once configured, you can use natural language commands like:
 discover_apis
 
 # List operations from the example petstore
-list_operations api_source="./example-petstore.yaml"
+list_operations docs_path="./example-petstore.yaml"
 
 # Get detailed info about a specific operation
-describe_api api_source="./example-petstore.yaml" operation_id="getPetById"
+describe_api docs_path="./example-petstore.yaml" operation_id="getPetById"
 
 # Call an API operation
-call_api api_source="./example-petstore.yaml" operation_id="findPetsByStatus" parameters='{"status": "available"}'
+call_api docs_path="./example-petstore.yaml" operation_id="findPetsByStatus" parameters='{"status": "available"}'
 ```
 
 ## Debugging

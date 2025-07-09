@@ -15,15 +15,15 @@ export async function describeApi(
     // Parse API specification
     let apiInfo;
     if (
-      params.api_source.startsWith("http://") ||
-      params.api_source.startsWith("https://")
+      params.docs_path.startsWith("http://") ||
+      params.docs_path.startsWith("https://")
     ) {
-      apiInfo = await discovery.parseOpenApiUrl(params.api_source);
+      apiInfo = await discovery.parseOpenApiUrl(params.docs_path);
     } else {
       // Handle relative paths
-      const fullPath = path.isAbsolute(params.api_source)
-        ? params.api_source
-        : path.resolve(process.cwd(), params.api_source);
+      const fullPath = path.isAbsolute(params.docs_path)
+        ? params.docs_path
+        : path.resolve(process.cwd(), params.docs_path);
       apiInfo = await discovery.parseOpenApiFile(fullPath);
     }
 
@@ -32,7 +32,7 @@ export async function describeApi(
         content: [
           {
             type: "text",
-            text: `Failed to parse OpenAPI specification from: ${params.api_source}\n\nPlease ensure:\n1. The file exists and is accessible\n2. The file contains valid OpenAPI/Swagger specification\n3. The file format is JSON or YAML`,
+            text: `Failed to parse OpenAPI specification from: ${params.docs_path}\n\nPlease ensure:\n1. The file exists and is accessible\n2. The file contains valid OpenAPI/Swagger specification\n3. The file format is JSON or YAML`,
           } as TextContent,
         ],
       };
@@ -180,7 +180,7 @@ export async function describeApi(
       // Usage example
       response += `## Usage Example\n\n`;
       response += `\`\`\`\n`;
-      response += `call_api api_source="${params.api_source}" operation_id="${operation.operationId}"`;
+      response += `call_api docs_path="${params.docs_path}" operation_id="${operation.operationId}"`;
 
       if (operation.parameters && operation.parameters.length > 0) {
         response += ` parameters='{\n`;
@@ -216,11 +216,11 @@ export async function describeApi(
 
       response += `## 🚀 Ready to Call This Operation?\n\n`;
       response += `**Step 1 - Set up authentication (if needed):**\n`;
-      response += `\`\`\`\nmanage_auth api_source="${params.api_source}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
+      response += `\`\`\`\nmanage_auth docs_path="${params.docs_path}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
       response += `**Step 2 - Execute the operation:**\n`;
       response += `Copy the usage example above and customize the parameters for your needs.\n\n`;
       response += `**Step 3 - Explore related operations:**\n`;
-      response += `\`\`\`\nlist_operations api_source="${params.api_source}"`;
+      response += `\`\`\`\nlist_operations docs_path="${params.docs_path}"`;
       if (operation.tags && operation.tags.length > 0) {
         response += ` tag="${operation.tags[0]}"`;
       }
@@ -239,7 +239,7 @@ export async function describeApi(
     // General API description
     let response = `# ${apiInfo.title}\n\n`;
     response += `**Version:** ${apiInfo.version}\n`;
-    response += `**Source:** ${params.api_source}\n\n`;
+    response += `**Source:** ${params.docs_path}\n\n`;
 
     if (apiInfo.description) {
       response += `## Description\n${apiInfo.description}\n\n`;
@@ -309,14 +309,14 @@ export async function describeApi(
     }
 
     response += `## Next Steps\n\n`;
-    response += `1. **List all operations**: \`list_operations api_source="${params.api_source}"\`\n`;
-    response += `2. **Describe specific operation**: \`describe_api api_source="${params.api_source}" operation_id="OPERATION_ID"\`\n`;
-    response += `3. **Call an operation**: \`call_api api_source="${params.api_source}" operation_id="OPERATION_ID"\`\n`;
+    response += `1. **List all operations**: \`list_operations docs_path="${params.docs_path}"\`\n`;
+    response += `2. **Describe specific operation**: \`describe_api docs_path="${params.docs_path}" operation_id="OPERATION_ID"\`\n`;
+    response += `3. **Call an operation**: \`call_api docs_path="${params.docs_path}" operation_id="OPERATION_ID"\`\n`;
 
     if (apiInfo.operations.length > 0) {
       response += `\n**Quick start** - Try calling the first operation:\n`;
       response += `\`\`\`\n`;
-      response += `call_api api_source="${params.api_source}" operation_id="${apiInfo.operations[0].operationId}"\n`;
+      response += `call_api docs_path="${params.docs_path}" operation_id="${apiInfo.operations[0].operationId}"\n`;
       response += `\`\`\``;
     }
 

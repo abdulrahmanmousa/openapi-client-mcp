@@ -12,8 +12,6 @@ import type {
 
 export class OpenApiDiscovery {
   private watchers: Map<string, FSWatcher> = new Map();
-  private cache: Map<string, { spec: OpenAPIDocument; lastModified: number }> =
-    new Map();
 
   async discoverApis(
     workspacePath: string = process.cwd(),
@@ -95,14 +93,6 @@ export class OpenApiDiscovery {
 
   async parseOpenApiFile(filePath: string): Promise<ApiInfo | null> {
     try {
-      const stats = await fs.stat(filePath);
-      const cacheKey = filePath;
-      const cached = this.cache.get(cacheKey);
-
-      if (cached && cached.lastModified >= stats.mtimeMs) {
-        return this.extractApiInfo(cached.spec, filePath);
-      }
-
       const content = await fs.readFile(filePath, "utf8");
       const spec = this.parseContent(content) as OpenAPIDocument;
 
@@ -110,7 +100,6 @@ export class OpenApiDiscovery {
         return null;
       }
 
-      this.cache.set(cacheKey, { spec, lastModified: stats.mtimeMs });
       return this.extractApiInfo(spec, filePath);
     } catch (error) {
       console.error(`Error parsing OpenAPI file ${filePath}:`, error);
@@ -320,15 +309,12 @@ export class OpenApiDiscovery {
     watcher.on("change", async (filePath) => {
       const fullPath = path.resolve(workspacePath, filePath);
       if (await this.isOpenApiFile(fullPath)) {
-        this.cache.delete(fullPath); // Invalidate cache
         const apis = await this.discoverApis(workspacePath);
         callback(apis);
       }
     });
 
     watcher.on("unlink", async (filePath) => {
-      const fullPath = path.resolve(workspacePath, filePath);
-      this.cache.delete(fullPath);
       const apis = await this.discoverApis(workspacePath);
       callback(apis);
     });
@@ -349,6 +335,5 @@ export class OpenApiDiscovery {
       watcher.close();
     }
     this.watchers.clear();
-    this.cache.clear();
   }
 }

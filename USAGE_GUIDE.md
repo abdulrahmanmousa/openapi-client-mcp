@@ -40,14 +40,14 @@ Get detailed information about a specific API:
 
 ```
 User: "Tell me about my petstore API"
-→ describe_api api_source="./example-petstore.yaml"
+→ describe_api docs_path="./example-petstore.yaml"
 ```
 
 Or list all available operations:
 
 ```
 User: "What operations are available in my petstore API?"
-→ list_operations api_source="./example-petstore.yaml"
+→ list_operations docs_path="./example-petstore.yaml"
 ```
 
 ### Step 3: Call API Operations
@@ -56,7 +56,7 @@ Execute API operations directly:
 
 ```
 User: "Get pet with ID 123 from my petstore"
-→ call_api api_source="./example-petstore.yaml" operation_id="getPetById" parameters='{"petId": 123}'
+→ call_api docs_path="./example-petstore.yaml" operation_id="getPetById" parameters='{"petId": 123}'
 ```
 
 ### Step 4: Handle Authentication
@@ -65,7 +65,7 @@ For APIs that require authentication:
 
 ```
 User: "Set up API key authentication for my petstore API"
-→ manage_auth api_source="./example-petstore.yaml" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key-here"}'
+→ manage_auth docs_path="./example-petstore.yaml" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key-here"}'
 ```
 
 ### Step 5: Advanced Operations
@@ -74,7 +74,7 @@ Create new resources:
 
 ```
 User: "Create a new pet named Fluffy"
-→ call_api api_source="./example-petstore.yaml" operation_id="addPet" parameters='{"body": {"name": "Fluffy", "status": "available", "photoUrls": ["https://example.com/fluffy.jpg"]}}'
+→ call_api docs_path="./example-petstore.yaml" operation_id="addPet" parameters='{"body": {"name": "Fluffy", "status": "available", "photoUrls": ["https://example.com/fluffy.jpg"]}}'
 ```
 
 ## 🛠️ Tool Reference
@@ -105,7 +105,7 @@ User: "Create a new pet named Fluffy"
 
 **Parameters**:
 
-- `api_source`: Path to OpenAPI file or URL
+- `docs_path`: Path to OpenAPI file or URL
 - `operation_id`: The operation ID from the OpenAPI spec
 - `parameters` (optional): Operation parameters
 - `auth_config` (optional): One-time auth configuration
@@ -116,7 +116,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml",
+  "docs_path": "./petstore.yaml",
   "operation_id": "findPetsByStatus",
   "parameters": {
     "status": "available"
@@ -128,7 +128,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml",
+  "docs_path": "./petstore.yaml",
   "operation_id": "addPet",
   "parameters": {
     "body": {
@@ -144,7 +144,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml",
+  "docs_path": "./petstore.yaml",
   "operation_id": "getPetById",
   "parameters": {
     "petId": 123
@@ -158,7 +158,7 @@ User: "Create a new pet named Fluffy"
 
 **Parameters**:
 
-- `api_source`: Path to OpenAPI file or URL
+- `docs_path`: Path to OpenAPI file or URL
 - `tag` (optional): Filter by operation tag
 - `method` (optional): Filter by HTTP method
 
@@ -168,7 +168,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml"
+  "docs_path": "./petstore.yaml"
 }
 ```
 
@@ -176,7 +176,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml",
+  "docs_path": "./petstore.yaml",
   "tag": "pet"
 }
 ```
@@ -185,7 +185,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml",
+  "docs_path": "./petstore.yaml",
   "method": "GET"
 }
 ```
@@ -196,7 +196,7 @@ User: "Create a new pet named Fluffy"
 
 **Parameters**:
 
-- `api_source`: Path to OpenAPI file or URL
+- `docs_path`: Path to OpenAPI file or URL
 - `operation_id` (optional): Specific operation to describe
 
 **Examples**:
@@ -205,7 +205,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml"
+  "docs_path": "./petstore.yaml"
 }
 ```
 
@@ -213,7 +213,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml",
+  "docs_path": "./petstore.yaml",
   "operation_id": "getPetById"
 }
 ```
@@ -224,7 +224,7 @@ User: "Create a new pet named Fluffy"
 
 **Parameters**:
 
-- `api_source`: Path to OpenAPI file or URL
+- `docs_path`: Path to OpenAPI file or URL
 - `auth_type`: Type of authentication
 - `config`: Authentication configuration
 
@@ -234,7 +234,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./petstore.yaml",
+  "docs_path": "./petstore.yaml",
   "auth_type": "apiKey",
   "config": {
     "headerName": "X-API-Key",
@@ -247,7 +247,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./api.yaml",
+  "docs_path": "./api.yaml",
   "auth_type": "bearer",
   "config": {
     "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
@@ -259,7 +259,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./api.yaml",
+  "docs_path": "./api.yaml",
   "auth_type": "basic",
   "config": {
     "username": "john_doe",
@@ -272,7 +272,7 @@ User: "Create a new pet named Fluffy"
 
 ```json
 {
-  "api_source": "./api.yaml",
+  "docs_path": "./api.yaml",
   "auth_type": "oauth2",
   "config": {
     "accessToken": "ya29.a0ARrdaM-2xQZ..."
@@ -289,42 +289,42 @@ User: "Create a new pet named Fluffy"
 discover_apis
 
 # Step 2: Get overview
-describe_api api_source="./new-api.yaml"
+describe_api docs_path="./new-api.yaml"
 
 # Step 3: List available operations
-list_operations api_source="./new-api.yaml"
+list_operations docs_path="./new-api.yaml"
 
 # Step 4: Try a simple operation
-call_api api_source="./new-api.yaml" operation_id="healthCheck"
+call_api docs_path="./new-api.yaml" operation_id="healthCheck"
 ```
 
 ### 2. Testing API Endpoints
 
 ```bash
 # Test different endpoints
-call_api api_source="./api.yaml" operation_id="getUsers"
-call_api api_source="./api.yaml" operation_id="getUserById" parameters='{"id": 1}'
-call_api api_source="./api.yaml" operation_id="createUser" parameters='{"body": {"name": "John", "email": "john@example.com"}}'
+call_api docs_path="./api.yaml" operation_id="getUsers"
+call_api docs_path="./api.yaml" operation_id="getUserById" parameters='{"id": 1}'
+call_api docs_path="./api.yaml" operation_id="createUser" parameters='{"body": {"name": "John", "email": "john@example.com"}}'
 ```
 
 ### 3. Working with Multiple APIs
 
 ```bash
 # Work with different APIs in the same session
-call_api api_source="./petstore.yaml" operation_id="listPets"
-call_api api_source="./users-api.json" operation_id="getUsers"
-call_api api_source="https://api.example.com/openapi.json" operation_id="getData"
+call_api docs_path="./petstore.yaml" operation_id="listPets"
+call_api docs_path="./users-api.json" operation_id="getUsers"
+call_api docs_path="https://api.example.com/openapi.json" operation_id="getData"
 ```
 
 ### 4. Authenticated API Workflows
 
 ```bash
 # Set up authentication
-manage_auth api_source="./secure-api.yaml" auth_type="bearer" config='{"token": "your-token"}'
+manage_auth docs_path="./secure-api.yaml" auth_type="bearer" config='{"token": "your-token"}'
 
 # Make authenticated calls
-call_api api_source="./secure-api.yaml" operation_id="getPrivateData"
-call_api api_source="./secure-api.yaml" operation_id="updateResource" parameters='{"id": 123, "body": {"status": "updated"}}'
+call_api docs_path="./secure-api.yaml" operation_id="getPrivateData"
+call_api docs_path="./secure-api.yaml" operation_id="updateResource" parameters='{"id": 123, "body": {"status": "updated"}}'
 ```
 
 ## 🐛 Troubleshooting
@@ -339,7 +339,7 @@ call_api api_source="./secure-api.yaml" operation_id="updateResource" parameters
 
 ```bash
 # List available operations to find the correct operation_id
-list_operations api_source="./your-api.yaml"
+list_operations docs_path="./your-api.yaml"
 ```
 
 ### Missing Parameters
@@ -369,13 +369,13 @@ Missing required parameters for operation 'createUser':
 ### Working with Remote APIs
 
 ```bash
-call_api api_source="https://petstore3.swagger.io/api/v3/openapi.json" operation_id="findPetsByStatus"
+call_api docs_path="https://petstore3.swagger.io/api/v3/openapi.json" operation_id="findPetsByStatus"
 ```
 
 ### Complex Parameter Structures
 
 ```bash
-call_api api_source="./api.yaml" operation_id="complexOperation" parameters='{
+call_api docs_path="./api.yaml" operation_id="complexOperation" parameters='{
   "pathParam": "value1",
   "queryParam": "value2",
   "headerParam": "value3",

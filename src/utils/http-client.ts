@@ -9,6 +9,29 @@ import type {
 export class ApiHttpClient {
   private authConfigs: Map<string, AuthConfig> = new Map();
 
+  constructor() {
+    this.loadAuthFromSessions();
+  }
+
+  // Load authentication configs from saved sessions
+  private loadAuthFromSessions(): void {
+    try {
+      // Import sessionManager dynamically to avoid circular dependencies
+      import("./session-manager.js").then(({ sessionManager }) => {
+        const sessions = sessionManager.listSessions();
+        sessions.forEach((session) => {
+          if (session.authConfig && session.openApiPath) {
+            this.authConfigs.set(session.openApiPath, session.authConfig);
+            // Also set for base URL in case that's used as api_source
+            this.authConfigs.set(session.baseUrl, session.authConfig);
+          }
+        });
+      });
+    } catch (error) {
+      console.warn("Failed to load auth configs from sessions:", error);
+    }
+  }
+
   async callOperation(
     baseUrl: string,
     operation: OperationInfo,
@@ -124,7 +147,7 @@ export class ApiHttpClient {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
       Accept: "application/json",
-      "User-Agent": "Universal-OpenAPI-MCP/1.0.0",
+      "User-Agent": "openapi-client-mcp/1.0.0",
     };
 
     // Add header parameters
@@ -254,6 +277,11 @@ export class ApiHttpClient {
 
   removeAuthConfig(apiSource: string): void {
     this.authConfigs.delete(apiSource);
+  }
+
+  // Public method to reload auth configs from sessions
+  reloadAuthFromSessions(): void {
+    this.loadAuthFromSessions();
   }
 
   listAuthConfigs(): Record<string, AuthConfig> {

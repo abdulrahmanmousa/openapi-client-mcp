@@ -1,11 +1,11 @@
 {
-  "name": "universal-openapi-mcp",
+  "name": "openapi-client-mcp",
   "version": "1.0.0",
   "description": "Universal Dynamic OpenAPI MCP Server - One MCP that works with any OpenAPI specification",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "universal-openapi-mcp": "./dist/index.js"
+    "openapi-client-mcp": "./dist/index.js"
   },
   "scripts": {
     "build": "tsc",

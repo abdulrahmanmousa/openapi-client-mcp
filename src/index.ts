@@ -3,32 +3,41 @@
 /**
  * Universal OpenAPI MCP Server
  * 
- * TOOL SELECTION DECISION TREE:
+ * TOOL SELECTION DECISION TREE (PRIORITY ORDER):
  * 
- * 1. User provides specific OpenAPI file/URL directly:
- *    → Skip discover_apis, go straight to:
+ * 1. User wants to call/use APIs (MOST COMMON):
+ *    → manage_session action="list" (check existing sessions first)
+ *    → If session exists: use session's OpenAPI spec for operations
+ *    → If no session: init_api to create new session
+ *    → Then: list_operations → describe_api → call_api
+ * 
+ * 2. User provides new API base URL:
+ *    → init_api (discovers OpenAPI spec, sets up session, detects auth)
+ *    → Then follow operations workflow above
+ * 
+ * 3. User provides specific OpenAPI spec URL/path directly:
  *    → list_operations (to see what's available)
- *    → describe_api (for parameter details)
+ *    → describe_api (for parameter details)  
  *    → call_api (to execute operations)
  * 
- * 2. User asks to find/explore APIs (no specific file):
- *    → discover_apis (find available specs)
- *    → Then follow path 1 above
- * 
- * 3. User mentions authentication/credentials:
- *    → manage_auth (configure auth first)
+ * 4. User mentions authentication/credentials:
+ *    → manage_auth (configure auth for the API)
  *    → Then proceed with other tools
  * 
- * 4. User wants to execute/test specific operation:
- *    → call_api (if they know operation_id)
- *    → OR list_operations first (to find operation_id)
+ * 5. User asks to find local API files (OPTIONAL/RARE):
+ *    → discover_apis (scan directories for OpenAPI specs)
+ *    → Then follow operations workflow
  * 
  * KEYWORDS THAT INDICATE TOOL CHOICE:
- * - "find APIs", "discover", "what's available" → discover_apis
+ * - "call the API", "use the backend", "make request" → manage_session (check sessions first!)
+ * - "work with https://api.example.com" → init_api
+ * - "use this OpenAPI spec", "here's the spec URL" → list_operations
  * - "what can I do", "show operations", "endpoints" → list_operations  
  * - "how do I call", "parameters needed", "details" → describe_api
+ * - "call X operation", "execute Y", "test endpoint Z" → call_api
  * - "API key", "token", "auth", "credentials" → manage_auth
- * - "call", "execute", "test", "run operation" → call_api
+ * - "my saved APIs", "switch API", "sessions" → manage_session
+ * - "find local APIs", "scan for specs" → discover_apis (RARE)
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -40,19 +49,25 @@ import {
 import { callApi } from "./tools/call-api.js";
 import { describeApi } from "./tools/describe-api.js";
 import { discoverApis } from "./tools/discover-apis.js";
+import { initApi } from "./tools/init-api.js";
 import { listOperations } from "./tools/list-operations.js";
 import { manageAuth } from "./tools/manage-auth.js";
+import { manageSession } from "./tools/manage-session.js";
 import {
   CallApiSchema,
   DescribeApiSchema,
   DiscoverApisSchema,
+  InitApiSchema,
   ListOperationsSchema,
   ManageAuthSchema,
+  ManageSessionSchema,
   type CallApiParams,
   type DescribeApiParams,
   type DiscoverApisParams,
+  type InitApiParams,
   type ListOperationsParams,
   type ManageAuthParams,
+  type ManageSessionParams,
 } from "./types/index.js";
 
 class UniversalOpenApiMcp {
@@ -61,7 +76,7 @@ class UniversalOpenApiMcp {
   constructor() {
     this.server = new Server(
       {
-        name: "universal-openapi-mcp",
+        name: "openapi-client-mcp",
         version: "1.0.0",
       },
       {
@@ -81,33 +96,45 @@ class UniversalOpenApiMcp {
       return {
         tools: [
           {
+            name: "init_api",
+            description:
+              "🚀 SMART START: Initialize API session with auto-discovery and authentication setup. USE WHEN: User provides a base URL and wants to get started quickly. This is the MAIN TOOL when user says 'use this API', 'work with https://api.example.com', or provides any base URL. Automatically discovers OpenAPI spec, sets up session, detects auth requirements, and provides next steps. ONE-STOP tool for API onboarding.",
+            inputSchema: InitApiSchema.shape,
+          },
+          {
+            name: "manage_session",
+            description:
+              "📁 SESSION MANAGER: Manage saved API sessions (list, activate, delete, info). PRIORITY USE: When user wants to call APIs or use backends - CHECK SESSIONS FIRST! Shows all saved sessions with their OpenAPI specs and auth status. Essential first step when user says 'call the API', 'use the backend', or wants to make requests.",
+            inputSchema: ManageSessionSchema.shape,
+          },
+          {
             name: "discover_apis",
             description:
-              "🔍 DISCOVERY TOOL: Find OpenAPI specs in workspace. USE WHEN: User asks to 'find APIs', 'discover specs', or wants to explore available APIs without providing a specific file/URL. Searches directories for .yaml/.yml/.json files containing OpenAPI specifications. This is STEP 1 when no specific API is mentioned.",
+              "🔍 OPTIONAL FILE SCANNER: Find OpenAPI specs in local directories. RARELY NEEDED - only use when user specifically asks to 'find local API files' or 'scan workspace for specs'. Most users provide OpenAPI URLs directly or use init_api with base URLs. This is a secondary utility tool, not part of the main workflow.",
             inputSchema: DiscoverApisSchema.shape,
           },
           {
             name: "list_operations",
             description:
-              "📋 EXPLORATION TOOL: Show all operations from a known OpenAPI spec. USE WHEN: User provides an OpenAPI file/URL and wants to see what operations are available, OR after discovery to explore a specific API. Shows operation IDs, methods, paths by category. CHOOSE THIS when user says 'what can I do with this API', 'show me operations', or provides API spec path asking for capabilities.",
+              "📋 OPERATION EXPLORER: Show all operations from an OpenAPI spec. PRIMARY USE: When user provides OpenAPI spec URL/path directly and asks 'what can I do' OR after using init_api to explore discovered operations. Shows operation IDs, methods, paths by category. This is a CORE tool for working with known OpenAPI specifications.",
             inputSchema: ListOperationsSchema.shape,
           },
           {
             name: "describe_api",
             description:
-              "📖 DOCUMENTATION TOOL: Get detailed info about API or specific operation. USE WHEN: User needs parameter details, request/response schemas, or examples before making a call. Without operation_id: gives API overview. With operation_id: shows detailed parameter requirements. CHOOSE THIS when user asks 'how do I call X', 'what parameters does Y need', or 'show me details about operation Z'.",
+              "📖 PARAMETER GUIDE: Get detailed info about API or specific operation from OpenAPI spec. PRIMARY USE: When user has OpenAPI spec and needs parameter details, request/response schemas, or examples before making calls. Without operation_id: gives API overview. With operation_id: shows detailed parameter requirements. Essential for understanding how to call operations.",
             inputSchema: DescribeApiSchema.shape,
           },
           {
             name: "manage_auth",
             description:
-              "🔐 AUTHENTICATION TOOL: Configure API authentication. USE WHEN: User mentions API keys, tokens, authentication, or API calls fail with auth errors (401/403). Set up once per API source, persists for subsequent calls. CHOOSE THIS when user provides credentials or mentions 'auth', 'API key', 'token', 'login required'.",
+              "🔐 AUTH CONFIGURATOR: Configure API authentication. USE WHEN: User mentions API keys, tokens, authentication, or API calls fail with auth errors (401/403). Usually called after init_api detects auth requirements. Set up once per API source, persists for subsequent calls. Handles API key, Bearer, Basic, OAuth2.",
             inputSchema: ManageAuthSchema.shape,
           },
           {
             name: "call_api",
             description:
-              "🚀 EXECUTION TOOL: Make actual API requests. USE WHEN: User wants to execute a specific API operation, test an endpoint, or get real data from an API. Requires api_source and operation_id. CHOOSE THIS when user says 'call X', 'execute Y', 'test endpoint Z', 'get data from API', or provides specific operation to run. This is the ACTION tool.",
+              "🚀 API EXECUTOR: Make actual API requests using OpenAPI specs. PRIMARY USE: When user wants to execute specific API operations, test endpoints, or get real data. Requires docs_path (OpenAPI spec URL/path) and operation_id. This is the main ACTION tool for calling APIs defined in OpenAPI specifications.",
             inputSchema: CallApiSchema.shape,
           },
         ],
@@ -120,6 +147,16 @@ class UniversalOpenApiMcp {
 
       try {
         switch (name) {
+          case "init_api":
+            const initParams = InitApiSchema.parse(args) as InitApiParams;
+            return await initApi(initParams);
+
+          case "manage_session":
+            const sessionParams = ManageSessionSchema.parse(
+              args
+            ) as ManageSessionParams;
+            return await manageSession(sessionParams);
+
           case "discover_apis":
             const discoverParams = DiscoverApisSchema.parse(
               args
@@ -161,44 +198,61 @@ class UniversalOpenApiMcp {
           let helpText = `\n\n**🎯 When to use this tool:**\n`;
 
           switch (name) {
+            case "init_api":
+              helpText += `- User provides API base URL: "work with https://api.example.com"\n`;
+              helpText += `- User says "use this API", "connect to API", "initialize API"\n`;
+              helpText += `**Examples:**\n`;
+              helpText += `- \`init_api base_url="https://api.example.com"\`\n`;
+              helpText += `- \`init_api base_url="http://localhost:3000" name="My Local API"\``;
+              break;
+
+            case "manage_session":
+              helpText += `- User wants to call APIs: "call the backend", "use the API", "make requests"\n`;
+              helpText += `- ALWAYS CHECK SESSIONS FIRST when user wants to use APIs\n`;
+              helpText += `**Examples:**\n`;
+              helpText += `- \`manage_session action="list"\` (check existing sessions)\n`;
+              helpText += `- \`manage_session action="activate" session_id="session_123"\``;
+              break;
+
             case "discover_apis":
-              helpText += `- User asks: "find APIs", "what APIs are available", "discover specs"\n`;
-              helpText += `- User wants to explore without a specific file/URL\n`;
+              helpText += `- User specifically asks: "find local API files", "scan workspace for specs"\n`;
+              helpText += `- RARELY NEEDED - most users provide OpenAPI URLs directly\n`;
               helpText += `**Examples:**\n`;
               helpText += `- \`discover_apis\` (searches current directory)\n`;
-              helpText += `- \`discover_apis workspace_path="/path/to/apis"\``;
+              helpText += `- \`discover_apis workspace_path="/path/to/apis"\`\n`;
+              helpText += `**💡 Tip:** Usually better to use init_api with base URL instead`;
               break;
 
             case "list_operations":
-              helpText += `- User provides OpenAPI file/URL and asks "what can I do"\n`;
-              helpText += `- User wants to see available operations/endpoints\n`;
+              helpText += `- User provides OpenAPI spec URL/path and asks "what can I do"\n`;
+              helpText += `- PRIMARY TOOL for exploring known OpenAPI specifications\n`;
               helpText += `**Examples:**\n`;
-              helpText += `- \`list_operations api_source="https://api.example.com/openapi.json"\`\n`;
-              helpText += `- \`list_operations api_source="./petstore.yaml" tag="pets"\``;
+              helpText += `- \`list_operations docs_path="https://api.example.com/openapi.json"\`\n`;
+              helpText += `- \`list_operations docs_path="./petstore.yaml" tag="pets"\``;
               break;
 
             case "call_api":
               helpText += `- User wants to execute/test a specific API operation\n`;
               helpText += `- User says "call X", "execute Y", "test endpoint Z"\n`;
               helpText += `**Examples:**\n`;
-              helpText += `- \`call_api api_source="api.yaml" operation_id="listUsers"\`\n`;
-              helpText += `- \`call_api api_source="https://api.com/spec.json" operation_id="getUser" parameters='{"id": 123}'\``;
+              helpText += `- \`call_api docs_path="api.yaml" operation_id="listUsers"\`\n`;
+              helpText += `- \`call_api docs_path="https://api.com/spec.json" operation_id="getUser" parameters='{"id": 123}'\``;
               break;
 
             case "describe_api":
               helpText += `- User asks "how do I call X", "what parameters does Y need"\n`;
               helpText += `- User needs details before making a call\n`;
               helpText += `**Examples:**\n`;
-              helpText += `- \`describe_api api_source="openapi.yaml"\` (API overview)\n`;
-              helpText += `- \`describe_api api_source="api.yaml" operation_id="createUser"\` (operation details)`;
+              helpText += `- \`describe_api docs_path="openapi.yaml"\` (API overview)\n`;
+              helpText += `- \`describe_api docs_path="api.yaml" operation_id="createUser"\` (operation details)`;
               break;
 
             case "manage_auth":
               helpText += `- User mentions API keys, tokens, authentication\n`;
               helpText += `- API calls fail with 401/403 errors\n`;
               helpText += `**Examples:**\n`;
-              helpText += `- \`manage_auth api_source="api.yaml" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "key123"}'\`\n`;
-              helpText += `- \`manage_auth api_source="api.yaml" auth_type="bearer" config='{"token": "token123"}'\``;
+              helpText += `- \`manage_auth docs_path="api.yaml" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "key123"}'\`\n`;
+              helpText += `- \`manage_auth docs_path="api.yaml" auth_type="bearer" config='{"token": "token123"}'\``;
               break;
           }
 
@@ -218,7 +272,7 @@ class UniversalOpenApiMcp {
               type: "text",
               text: `❌ **Error executing tool '${name}'**\n\n${
                 error instanceof Error ? error.message : "Unknown error"
-              }\n\n**🤖 Tool Selection Guide:**\n\n**When user provides OpenAPI file/URL directly:**\n- Use \`list_operations\` to see what's available\n- Use \`describe_api\` for parameter details\n- Use \`call_api\` to execute operations\n- Skip \`discover_apis\` - not needed!\n\n**When user asks to explore/find APIs:**\n- Start with \`discover_apis\` to find specifications\n- Then follow the workflow above\n\n**When user mentions auth/credentials:**\n- Use \`manage_auth\` first, then other tools\n\n**When user wants to execute/test:**\n- Use \`call_api\` (ensure you have api_source + operation_id)`,
+              }\n\n**🤖 Smart Tool Selection Guide:**\n\n**When user wants to call APIs/backends (MOST COMMON):**\n- 1st: Use \`manage_session action="list"\` to check existing sessions\n- 2nd: If session exists, use its OpenAPI spec for operations\n- 3rd: If no session, use \`init_api base_url="..."\` to create one\n\n**When user provides new API base URL:**\n- Use \`init_api base_url="https://api.example.com"\` - ONE tool does it all!\n- This auto-discovers OpenAPI spec, sets up session, detects auth\n\n**When user provides OpenAPI spec directly:**\n- Use \`list_operations\` to see what's available\n- Use \`call_api\` to execute operations\n\n**💡 Pro tip:** Always check sessions FIRST when user wants to call APIs!`,
             },
           ],
         };

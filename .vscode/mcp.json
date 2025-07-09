@@ -1,6 +1,6 @@
 {
   "servers": {
-    "universal-openapi-mcp": {
+    "openapi-client-mcp": {
       "type": "stdio",
       "command": "node",
       "args": [

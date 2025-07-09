@@ -85,14 +85,14 @@ export async function discoverApis(
     response += `## 🚀 Quick Start Guide\n\n`;
     response += `Now that APIs are discovered, follow these steps:\n\n`;
     response += `**Step 1 - Explore Operations:**\n`;
-    response += `\`\`\`\nlist_operations api_source="${apis[0].path}"\n\`\`\`\n\n`;
+    response += `\`\`\`\nlist_operations docs_path="${apis[0].path}"\n\`\`\`\n\n`;
     response += `**Step 2 - Get Operation Details:**\n`;
-    response += `\`\`\`\ndescribe_api api_source="${apis[0].path}" operation_id="OPERATION_ID"\n\`\`\`\n\n`;
+    response += `\`\`\`\ndescribe_api docs_path="${apis[0].path}" operation_id="OPERATION_ID"\n\`\`\`\n\n`;
     response += `**Step 3 - Configure Authentication (if needed):**\n`;
-    response += `\`\`\`\nmanage_auth api_source="${apis[0].path}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
+    response += `\`\`\`\nmanage_auth docs_path="${apis[0].path}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
     response += `**Step 4 - Make API Calls:**\n`;
-    response += `\`\`\`\ncall_api api_source="${apis[0].path}" operation_id="OPERATION_ID" parameters='{"param": "value"}'\n\`\`\`\n\n`;
-    response += `💡 **Tip:** Use the exact \`api_source\` paths shown above in subsequent tool calls.`;
+    response += `\`\`\`\ncall_api docs_path="${apis[0].path}" operation_id="OPERATION_ID" parameters='{"param": "value"}'\n\`\`\`\n\n`;
+    response += `💡 **Tip:** Use the exact \`docs_path\` paths shown above in subsequent tool calls.`;
 
     return {
       content: [

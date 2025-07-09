@@ -15,15 +15,15 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
     // Parse API specification
     let apiInfo;
     if (
-      params.api_source.startsWith("http://") ||
-      params.api_source.startsWith("https://")
+      params.docs_path.startsWith("http://") ||
+      params.docs_path.startsWith("https://")
     ) {
-      apiInfo = await discovery.parseOpenApiUrl(params.api_source);
+      apiInfo = await discovery.parseOpenApiUrl(params.docs_path);
     } else {
       // Handle relative paths
-      const fullPath = path.isAbsolute(params.api_source)
-        ? params.api_source
-        : path.resolve(process.cwd(), params.api_source);
+      const fullPath = path.isAbsolute(params.docs_path)
+        ? params.docs_path
+        : path.resolve(process.cwd(), params.docs_path);
       apiInfo = await discovery.parseOpenApiFile(fullPath);
     }
 
@@ -32,7 +32,7 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
         content: [
           {
             type: "text",
-            text: `❌ **Failed to parse OpenAPI specification from: ${params.api_source}**\n\n**Common issues:**\n1. File doesn't exist or path is incorrect\n2. File doesn't contain valid OpenAPI/Swagger specification\n3. File format is not JSON or YAML\n4. Network issues (for remote URLs)\n\n**Solutions:**\n1. Run \`discover_apis\` first to find available APIs\n2. Use the exact \`api_source\` path from discover_apis results\n3. Verify file exists and is accessible\n4. Check file contains proper OpenAPI schema`,
+            text: `❌ **Failed to parse OpenAPI specification from: ${params.docs_path}**\n\n**Common issues:**\n1. File doesn't exist or path is incorrect\n2. File doesn't contain valid OpenAPI/Swagger specification\n3. File format is not JSON or YAML\n4. Network issues (for remote URLs)\n\n**Solutions:**\n1. Run \`discover_apis\` first to find available APIs\n2. Use the exact \`docs_path\` path from discover_apis results\n3. Verify file exists and is accessible\n4. Check file contains proper OpenAPI schema`,
           } as TextContent,
         ],
       };
@@ -49,14 +49,14 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
         .join(", ");
       const moreOpsText =
         apiInfo.operations.length > 10
-          ? `\n\n**Note:** Showing first 10 of ${apiInfo.operations.length} available operations. Use \`list_operations api_source="${params.api_source}"\` to see all operations.`
+          ? `\n\n**Note:** Showing first 10 of ${apiInfo.operations.length} available operations. Use \`list_operations docs_path="${params.docs_path}"\` to see all operations.`
           : "";
 
       return {
         content: [
           {
             type: "text",
-            text: `❌ **Operation '${params.operation_id}' not found in API specification**\n\n**Available operations:** ${availableOps}${moreOpsText}\n\n**Next steps:**\n1. Use \`list_operations api_source="${params.api_source}"\` to see all operations with descriptions\n2. Use exact operation ID (case-sensitive)\n3. Check spelling and formatting of operation ID`,
+            text: `❌ **Operation '${params.operation_id}' not found in API specification**\n\n**Available operations:** ${availableOps}${moreOpsText}\n\n**Next steps:**\n1. Use \`list_operations docs_path="${params.docs_path}"\` to see all operations with descriptions\n2. Use exact operation ID (case-sensitive)\n3. Check spelling and formatting of operation ID`,
           } as TextContent,
         ],
       };
@@ -142,7 +142,7 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
 
     // Setup authentication - use managed auth or provided auth
     let authConfig: AuthConfig | undefined = httpClient.getAuthConfig(
-      params.api_source
+      params.docs_path
     );
 
     if (params.auth_config && !authConfig) {

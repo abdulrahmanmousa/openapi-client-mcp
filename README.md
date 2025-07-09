@@ -39,7 +39,7 @@ Execute API operations from any OpenAPI specification.
 
 ```typescript
 call_api {
-  api_source: string,              // Path to OpenAPI file or URL
+  docs_path: string,              // Path to OpenAPI file or URL
   operation_id: string,            // Operation ID from the spec
   parameters?: Record<string, any>, // Operation parameters
   auth_config?: Record<string, string> // Optional auth config
@@ -52,7 +52,7 @@ List all available operations from an OpenAPI spec with filtering.
 
 ```typescript
 list_operations {
-  api_source: string,    // Path to OpenAPI file or URL
+  docs_path: string,    // Path to OpenAPI file or URL
   tag?: string,          // Optional: filter by tag
   method?: string        // Optional: filter by HTTP method
 }
@@ -64,7 +64,7 @@ Get detailed information about an API or specific operation.
 
 ```typescript
 describe_api {
-  api_source: string,        // Path to OpenAPI file or URL
+  docs_path: string,        // Path to OpenAPI file or URL
   operation_id?: string      // Optional: specific operation to describe
 }
 ```
@@ -75,7 +75,7 @@ Configure authentication for API calls.
 
 ```typescript
 manage_auth {
-  api_source: string,                           // Path to OpenAPI file or URL
+  docs_path: string,                           // Path to OpenAPI file or URL
   auth_type: 'apiKey' | 'bearer' | 'basic' | 'oauth2',
   config: Record<string, string>                // Auth configuration
 }
@@ -92,25 +92,25 @@ discover_apis workspace_path="./my-project" recursive=true
 ### List all operations from a Petstore API
 
 ```bash
-list_operations api_source="./petstore.yaml"
+list_operations docs_path="./petstore.yaml"
 ```
 
 ### Call an API operation
 
 ```bash
-call_api api_source="./petstore.yaml" operation_id="listPets" parameters='{"limit": 10}'
+call_api docs_path="./petstore.yaml" operation_id="listPets" parameters='{"limit": 10}'
 ```
 
 ### Set up API key authentication
 
 ```bash
-manage_auth api_source="./petstore.yaml" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key-here"}'
+manage_auth docs_path="./petstore.yaml" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key-here"}'
 ```
 
 ### Call authenticated API
 
 ```bash
-call_api api_source="./petstore.yaml" operation_id="createPet" parameters='{"body": {"name": "Fluffy", "tag": "cat"}}'
+call_api docs_path="./petstore.yaml" operation_id="createPet" parameters='{"body": {"name": "Fluffy", "tag": "cat"}}'
 ```
 
 ## 🔐 Authentication Types
@@ -192,9 +192,9 @@ src/
    ```json
    {
      "mcpServers": {
-       "universal-openapi-mcp": {
+       "openapi-client-mcp": {
          "command": "node",
-         "args": ["/absolute/path/to/universal-openapi-mcp/dist/index.js"]
+         "args": ["/absolute/path/to/openapi-client-mcp/dist/index.js"]
        }
      }
    }

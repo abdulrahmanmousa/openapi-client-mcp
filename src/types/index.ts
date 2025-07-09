@@ -24,7 +24,7 @@ export const DiscoverApisSchema = z.object({
 });
 
 export const CallApiSchema = z.object({
-  api_source: z
+  docs_path: z
     .string()
     .describe(
       "REQUIRED: Path to OpenAPI file or URL. When user provides a specific OpenAPI file/URL, use it directly - no need to discover first. Can be absolute path (/home/user/api.yaml), relative path (./openapi.json), filename in current directory (petstore.yaml), or full URL (https://api.example.com/openapi.json)."
@@ -55,7 +55,7 @@ export const CallApiSchema = z.object({
 });
 
 export const DescribeApiSchema = z.object({
-  api_source: z
+  docs_path: z
     .string()
     .describe(
       "REQUIRED: Path to OpenAPI file or URL. When user provides a specific OpenAPI file/URL, use it directly - no need to discover first. Same format as call_api tool."
@@ -69,7 +69,7 @@ export const DescribeApiSchema = z.object({
 });
 
 export const ListOperationsSchema = z.object({
-  api_source: z
+  docs_path: z
     .string()
     .describe(
       "REQUIRED: Path to OpenAPI file or URL. When user provides a specific OpenAPI file/URL, use it directly - no need to discover first. Same format as call_api tool."
@@ -89,7 +89,7 @@ export const ListOperationsSchema = z.object({
 });
 
 export const ManageAuthSchema = z.object({
-  api_source: z
+  docs_path: z
     .string()
     .describe(
       "REQUIRED: Path to OpenAPI file or URL that this authentication applies to. When user provides a specific OpenAPI file/URL, use it directly. Each API source can have its own authentication configuration."
@@ -106,12 +106,54 @@ export const ManageAuthSchema = z.object({
     ),
 });
 
+export const InitApiSchema = z.object({
+  base_url: z
+    .string()
+    .describe(
+      "REQUIRED: Base URL of the API (e.g., 'https://api.example.com', 'http://localhost:3000'). This is the main endpoint where your API is hosted."
+    ),
+  name: z
+    .string()
+    .optional()
+    .describe(
+      "Optional: Custom name for this API session. If not provided, will be auto-generated from the base URL."
+    ),
+  openapi_path: z
+    .string()
+    .optional()
+    .describe(
+      "Optional: Specific path to OpenAPI specification if auto-discovery fails. Can be relative path ('/docs/openapi.json') or full URL."
+    ),
+  force_rediscover: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Optional: Force re-discovery of OpenAPI spec even if already cached. Useful when API spec has been updated."
+    ),
+});
+
+export const ManageSessionSchema = z.object({
+  action: z
+    .enum(["list", "activate", "delete", "info"])
+    .describe(
+      "REQUIRED: Action to perform. 'list' shows all sessions, 'activate' sets active session, 'delete' removes session, 'info' shows session details."
+    ),
+  session_id: z
+    .string()
+    .optional()
+    .describe(
+      "Optional: Session ID for activate, delete, or info actions. Not needed for 'list' action. Use manage_session action='list' to see available session IDs."
+    ),
+});
+
 // Type definitions
 export type DiscoverApisParams = z.infer<typeof DiscoverApisSchema>;
 export type CallApiParams = z.infer<typeof CallApiSchema>;
 export type DescribeApiParams = z.infer<typeof DescribeApiSchema>;
 export type ListOperationsParams = z.infer<typeof ListOperationsSchema>;
 export type ManageAuthParams = z.infer<typeof ManageAuthSchema>;
+export type InitApiParams = z.infer<typeof InitApiSchema>;
+export type ManageSessionParams = z.infer<typeof ManageSessionSchema>;
 
 // OpenAPI related types
 export type OpenAPIDocument = OpenAPIV3.Document | OpenAPIV2.Document;

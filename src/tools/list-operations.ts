@@ -15,15 +15,15 @@ export async function listOperations(
     // Parse API specification
     let apiInfo;
     if (
-      params.api_source.startsWith("http://") ||
-      params.api_source.startsWith("https://")
+      params.docs_path.startsWith("http://") ||
+      params.docs_path.startsWith("https://")
     ) {
-      apiInfo = await discovery.parseOpenApiUrl(params.api_source);
+      apiInfo = await discovery.parseOpenApiUrl(params.docs_path);
     } else {
       // Handle relative paths
-      const fullPath = path.isAbsolute(params.api_source)
-        ? params.api_source
-        : path.resolve(process.cwd(), params.api_source);
+      const fullPath = path.isAbsolute(params.docs_path)
+        ? params.docs_path
+        : path.resolve(process.cwd(), params.docs_path);
       apiInfo = await discovery.parseOpenApiFile(fullPath);
     }
 
@@ -32,7 +32,7 @@ export async function listOperations(
         content: [
           {
             type: "text",
-            text: `Failed to parse OpenAPI specification from: ${params.api_source}\n\nPlease ensure:\n1. The file exists and is accessible\n2. The file contains valid OpenAPI/Swagger specification\n3. The file format is JSON or YAML`,
+            text: `Failed to parse OpenAPI specification from: ${params.docs_path}\n\nPlease ensure:\n1. The file exists and is accessible\n2. The file contains valid OpenAPI/Swagger specification\n3. The file format is JSON or YAML`,
           } as TextContent,
         ],
       };
@@ -159,7 +159,7 @@ export async function listOperations(
 
         response += `**Usage Example:**\n`;
         response += `\`\`\`\n`;
-        response += `call_api api_source="${params.api_source}" operation_id="${op.operationId}"`;
+        response += `call_api docs_path="${params.docs_path}" operation_id="${op.operationId}"`;
 
         // Add example parameters
         if (op.parameters && op.parameters.length > 0) {
@@ -194,11 +194,11 @@ export async function listOperations(
     response += `## 🚀 Next Steps\n\n`;
     response += `**Ready to use this API? Here's your action plan:**\n\n`;
     response += `**1. Get operation details (recommended):**\n`;
-    response += `\`\`\`\ndescribe_api api_source="${params.api_source}" operation_id="OPERATION_ID"\n\`\`\`\n\n`;
+    response += `\`\`\`\ndescribe_api docs_path="${params.docs_path}" operation_id="OPERATION_ID"\n\`\`\`\n\n`;
     response += `**2. Set up authentication (if required):**\n`;
-    response += `\`\`\`\nmanage_auth api_source="${params.api_source}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
+    response += `\`\`\`\nmanage_auth docs_path="${params.docs_path}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
     response += `**3. Execute an operation:**\n`;
-    response += `\`\`\`\ncall_api api_source="${params.api_source}" operation_id="${operations[0].operationId}"\n\`\`\`\n\n`;
+    response += `\`\`\`\ncall_api docs_path="${params.docs_path}" operation_id="${operations[0].operationId}"\n\`\`\`\n\n`;
     response += `💡 **Pro tip:** Use \`describe_api\` first to understand parameter requirements before calling operations.`;
 
     return {

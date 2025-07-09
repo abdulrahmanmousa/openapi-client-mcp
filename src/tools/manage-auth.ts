@@ -4,6 +4,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import type { ManageAuthParams } from "../types/index.js";
 import { ApiHttpClient } from "../utils/http-client.js";
+import { sessionManager } from "../utils/session-manager.js";
 
 // Global HTTP client instance to persist auth configs
 let httpClientInstance: ApiHttpClient | null = null;
@@ -79,7 +80,7 @@ export async function manageAuth(
           response += `- \`apiKey\`: Your API key value\n`;
           response += `\n**Example:**\n`;
           response += `\`\`\`\n`;
-          response += `manage_auth api_source="${params.api_source}" auth_type="apiKey" config='{\n`;
+          response += `manage_auth docs_path="${params.docs_path}" auth_type="apiKey" config='{\n`;
           response += `  "headerName": "X-API-Key",\n`;
           response += `  "apiKey": "your-api-key-here"\n`;
           response += `}'\n`;
@@ -90,7 +91,7 @@ export async function manageAuth(
           response += `- \`token\`: Your bearer token\n`;
           response += `\n**Example:**\n`;
           response += `\`\`\`\n`;
-          response += `manage_auth api_source="${params.api_source}" auth_type="bearer" config='{\n`;
+          response += `manage_auth docs_path="${params.docs_path}" auth_type="bearer" config='{\n`;
           response += `  "token": "your-bearer-token-here"\n`;
           response += `}'\n`;
           response += `\`\`\``;
@@ -101,7 +102,7 @@ export async function manageAuth(
           response += `- \`password\`: Your password\n`;
           response += `\n**Example:**\n`;
           response += `\`\`\`\n`;
-          response += `manage_auth api_source="${params.api_source}" auth_type="basic" config='{\n`;
+          response += `manage_auth docs_path="${params.docs_path}" auth_type="basic" config='{\n`;
           response += `  "username": "your-username",\n`;
           response += `  "password": "your-password"\n`;
           response += `}'\n`;
@@ -112,7 +113,7 @@ export async function manageAuth(
           response += `- \`accessToken\`: Your OAuth2 access token\n`;
           response += `\n**Example:**\n`;
           response += `\`\`\`\n`;
-          response += `manage_auth api_source="${params.api_source}" auth_type="oauth2" config='{\n`;
+          response += `manage_auth docs_path="${params.docs_path}" auth_type="oauth2" config='{\n`;
           response += `  "accessToken": "your-oauth2-token-here"\n`;
           response += `}'\n`;
           response += `\`\`\``;
@@ -129,12 +130,39 @@ export async function manageAuth(
       };
     }
 
-    // Store the authentication configuration
-    httpClient.setAuthConfig(params.api_source, authConfig);
+    // Store the authentication configuration in HTTP client
+    httpClient.setAuthConfig(params.docs_path, authConfig);
+
+    // Also store in session if we can find the matching session
+    const sessions = sessionManager.listSessions();
+    const matchingSession = sessions.find(
+      (session) =>
+        session.openApiPath === params.docs_path ||
+        session.baseUrl === params.docs_path ||
+        (session.openApiPath &&
+          session.openApiPath.includes(params.docs_path)) ||
+        params.docs_path.includes(session.baseUrl)
+    );
+
+    if (matchingSession) {
+      sessionManager.setAuthConfig(matchingSession.id, authConfig);
+      // Reload HTTP client auth configs to ensure consistency
+      httpClient.reloadAuthFromSessions();
+    }
 
     let response = `✅ **Authentication Configuration Saved**\n\n`;
-    response += `**API Source:** ${params.api_source}\n`;
-    response += `**Authentication Type:** ${params.auth_type}\n\n`;
+    response += `**API Source:** ${params.docs_path}\n`;
+    response += `**Authentication Type:** ${params.auth_type}\n`;
+
+    if (matchingSession) {
+      response += `**Session:** ${matchingSession.name} (${matchingSession.id})\n`;
+      response += `**✅ Stored in session for persistence across restarts**\n`;
+    } else {
+      response += `**⚠️ No matching session found - auth stored in HTTP client only**\n`;
+      response += `**Note:** Auth will be lost on MCP server restart\n`;
+    }
+
+    response += `\n`;
 
     switch (params.auth_type) {
       case "apiKey":
@@ -174,7 +202,7 @@ export async function manageAuth(
 
     response += `**Next Steps:**\n`;
     response += `1. Test the authentication by making an API call:\n`;
-    response += `   \`call_api api_source="${params.api_source}" operation_id="OPERATION_ID"\`\n`;
+    response += `   \`call_api docs_path="${params.docs_path}" operation_id="OPERATION_ID"\`\n`;
     response += `2. Use \`list_operations\` to see available operations for this API\n`;
     response += `3. If you need to update the authentication, run \`manage_auth\` again with new credentials\n\n`;
 
