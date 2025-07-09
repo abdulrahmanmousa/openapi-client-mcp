@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "openapi-client-mcp": "./dist/index.js"
+    "openapi-client-mcp": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -18,10 +18,32 @@
     "openapi",
     "api",
     "swagger",
-    "model-context-protocol"
+    "model-context-protocol",
+    "api-client",
+    "universal",
+    "dynamic",
+    "rest-api",
+    "claude"
   ],
-  "author": "",
+  "files": [
+    "dist/",
+    "README.md",
+    "USAGE_GUIDE.md",
+    "example-petstore.yaml"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "abdulrahmanmoussa",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abdulrahmanmoussa/openapi-client-mcp.git"
+  },
+  "homepage": "https://github.com/abdulrahmanmoussa/openapi-client-mcp#readme",
+  "bugs": {
+    "url": "https://github.com/abdulrahmanmoussa/openapi-client-mcp/issues"
+  },
   "devDependencies": {
     "typescript": "^5.8.3"
   },
