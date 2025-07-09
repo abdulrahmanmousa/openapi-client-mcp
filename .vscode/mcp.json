@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "universal-openapi-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/home/abdulrahman/test-projects/mcps/openapi-to-mcp-(mcp server)/dist/index.js"
+      ]
+    }
+  }
+}

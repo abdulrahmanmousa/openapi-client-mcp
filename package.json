@@ -1,0 +1,41 @@
+{
+  "name": "universal-openapi-mcp",
+  "version": "1.0.0",
+  "description": "Universal Dynamic OpenAPI MCP Server - One MCP that works with any OpenAPI specification",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "universal-openapi-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc && node dist/index.js",
+    "start": "node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "mcp",
+    "openapi",
+    "api",
+    "swagger",
+    "model-context-protocol"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.15.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.0.12",
+    "chokidar": "^4.0.3",
+    "fast-glob": "^3.3.3",
+    "glob": "^11.0.3",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "^3.3.2",
+    "openapi-types": "^12.1.3",
+    "yaml": "^2.8.0",
+    "zod": "^3.25.76"
+  }
+}
