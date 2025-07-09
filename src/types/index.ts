@@ -6,62 +6,104 @@ export const DiscoverApisSchema = z.object({
   workspace_path: z
     .string()
     .optional()
-    .describe("Optional: specific path to search for OpenAPI files"),
+    .describe(
+      "Optional: Absolute or relative path to search for OpenAPI files. Defaults to current working directory. Examples: '/home/user/project', './api-specs', '../docs'"
+    ),
   recursive: z
     .boolean()
     .default(true)
-    .describe("Whether to search recursively in subdirectories"),
+    .describe(
+      "Whether to search recursively in subdirectories. Set to false to only search in the specified directory. Default: true"
+    ),
   include_remote: z
     .boolean()
     .default(false)
-    .describe("Whether to include remote OpenAPI URLs"),
+    .describe(
+      "Whether to include remote OpenAPI URLs from configuration files or documentation. Default: false"
+    ),
 });
 
 export const CallApiSchema = z.object({
   api_source: z
     .string()
     .describe(
-      'Path to OpenAPI file or URL (e.g., "petstore.yaml", "https://api.example.com/openapi.json")'
+      "REQUIRED: Path to OpenAPI file or URL. When user provides a specific OpenAPI file/URL, use it directly - no need to discover first. Can be absolute path (/home/user/api.yaml), relative path (./openapi.json), filename in current directory (petstore.yaml), or full URL (https://api.example.com/openapi.json)."
     ),
   operation_id: z
     .string()
     .describe(
-      'The operationId from the OpenAPI spec (e.g., "listPets", "createUser")'
+      'REQUIRED: The exact operationId from the OpenAPI specification. Use list_operations tool to see all available operation IDs. Examples: "listPets", "createUser", "getUserById", "updatePost"'
     ),
   parameters: z
     .record(z.any())
     .optional()
-    .describe("Parameters for the API operation"),
+    .describe(
+      'Optional: JSON object containing parameters for the API operation. Include path parameters (id, userId), query parameters (limit, filter), header parameters (X-Custom-Header), and request body (use \'body\' key). Example: {"id": 123, "limit": 10, "body": {"name": "John"}}'
+    ),
   auth_config: z
     .record(z.string())
     .optional()
-    .describe("Authentication configuration (api keys, tokens, etc.)"),
-  base_url: z.string().optional().describe("Base URL for the API"),
+    .describe(
+      'Optional: Authentication configuration for one-time use. Prefer using manage_auth tool to set persistent authentication. Format: {"type": "apiKey", "headerName": "X-API-Key", "apiKey": "your-key"}'
+    ),
+  base_url: z
+    .string()
+    .optional()
+    .describe(
+      "Optional: Override the base URL from OpenAPI specification. Use full URL with protocol. Example: 'https://api.staging.example.com' or 'http://localhost:3000'"
+    ),
 });
 
 export const DescribeApiSchema = z.object({
-  api_source: z.string().describe("Path to OpenAPI file or URL"),
+  api_source: z
+    .string()
+    .describe(
+      "REQUIRED: Path to OpenAPI file or URL. When user provides a specific OpenAPI file/URL, use it directly - no need to discover first. Same format as call_api tool."
+    ),
   operation_id: z
     .string()
     .optional()
-    .describe("Optional: specific operation to describe"),
+    .describe(
+      "Optional: Specific operation ID to get detailed information about. If omitted, returns general API overview. Use list_operations to see available operation IDs."
+    ),
 });
 
 export const ListOperationsSchema = z.object({
-  api_source: z.string().describe("Path to OpenAPI file or URL"),
-  tag: z.string().optional().describe("Optional: filter operations by tag"),
+  api_source: z
+    .string()
+    .describe(
+      "REQUIRED: Path to OpenAPI file or URL. When user provides a specific OpenAPI file/URL, use it directly - no need to discover first. Same format as call_api tool."
+    ),
+  tag: z
+    .string()
+    .optional()
+    .describe(
+      "Optional: Filter operations by OpenAPI tag/category. Examples: 'users', 'pets', 'authentication'. Case-insensitive partial matching."
+    ),
   method: z
     .string()
     .optional()
-    .describe("Optional: filter operations by HTTP method"),
+    .describe(
+      "Optional: Filter operations by HTTP method. Valid values: 'get', 'post', 'put', 'patch', 'delete', 'head', 'options'. Case-insensitive."
+    ),
 });
 
 export const ManageAuthSchema = z.object({
-  api_source: z.string().describe("Path to OpenAPI file or URL"),
+  api_source: z
+    .string()
+    .describe(
+      "REQUIRED: Path to OpenAPI file or URL that this authentication applies to. When user provides a specific OpenAPI file/URL, use it directly. Each API source can have its own authentication configuration."
+    ),
   auth_type: z
     .enum(["apiKey", "bearer", "basic", "oauth2"])
-    .describe("Type of authentication"),
-  config: z.record(z.string()).describe("Authentication configuration"),
+    .describe(
+      "REQUIRED: Type of authentication method. 'apiKey' for API key in header, 'bearer' for Bearer token, 'basic' for username/password, 'oauth2' for OAuth2 access token."
+    ),
+  config: z
+    .record(z.string())
+    .describe(
+      'REQUIRED: Authentication configuration object. For apiKey: {"headerName": "X-API-Key", "apiKey": "your-key"}. For bearer: {"token": "your-token"}. For basic: {"username": "user", "password": "pass"}. For oauth2: {"accessToken": "your-token"}.'
+    ),
 });
 
 // Type definitions

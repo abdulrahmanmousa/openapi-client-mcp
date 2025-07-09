@@ -32,7 +32,7 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
         content: [
           {
             type: "text",
-            text: `Failed to parse OpenAPI specification from: ${params.api_source}\n\nPlease ensure:\n1. The file exists and is accessible\n2. The file contains valid OpenAPI/Swagger specification\n3. The file format is JSON or YAML`,
+            text: `❌ **Failed to parse OpenAPI specification from: ${params.api_source}**\n\n**Common issues:**\n1. File doesn't exist or path is incorrect\n2. File doesn't contain valid OpenAPI/Swagger specification\n3. File format is not JSON or YAML\n4. Network issues (for remote URLs)\n\n**Solutions:**\n1. Run \`discover_apis\` first to find available APIs\n2. Use the exact \`api_source\` path from discover_apis results\n3. Verify file exists and is accessible\n4. Check file contains proper OpenAPI schema`,
           } as TextContent,
         ],
       };
@@ -45,12 +45,18 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
     if (!operation) {
       const availableOps = apiInfo.operations
         .map((op) => op.operationId)
+        .slice(0, 10)
         .join(", ");
+      const moreOpsText =
+        apiInfo.operations.length > 10
+          ? `\n\n**Note:** Showing first 10 of ${apiInfo.operations.length} available operations. Use \`list_operations api_source="${params.api_source}"\` to see all operations.`
+          : "";
+
       return {
         content: [
           {
             type: "text",
-            text: `Operation '${params.operation_id}' not found in API specification.\n\nAvailable operations: ${availableOps}\n\nUse the 'list_operations' tool to see all available operations with descriptions.`,
+            text: `❌ **Operation '${params.operation_id}' not found in API specification**\n\n**Available operations:** ${availableOps}${moreOpsText}\n\n**Next steps:**\n1. Use \`list_operations api_source="${params.api_source}"\` to see all operations with descriptions\n2. Use exact operation ID (case-sensitive)\n3. Check spelling and formatting of operation ID`,
           } as TextContent,
         ],
       };

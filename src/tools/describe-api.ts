@@ -212,6 +212,18 @@ export async function describeApi(
         response += `\n}'`;
       }
 
+      response += `\n\`\`\`\n\n`;
+
+      response += `## 🚀 Ready to Call This Operation?\n\n`;
+      response += `**Step 1 - Set up authentication (if needed):**\n`;
+      response += `\`\`\`\nmanage_auth api_source="${params.api_source}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
+      response += `**Step 2 - Execute the operation:**\n`;
+      response += `Copy the usage example above and customize the parameters for your needs.\n\n`;
+      response += `**Step 3 - Explore related operations:**\n`;
+      response += `\`\`\`\nlist_operations api_source="${params.api_source}"`;
+      if (operation.tags && operation.tags.length > 0) {
+        response += ` tag="${operation.tags[0]}"`;
+      }
       response += `\n\`\`\``;
 
       return {

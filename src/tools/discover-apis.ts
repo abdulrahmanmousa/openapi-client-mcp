@@ -24,15 +24,15 @@ export async function discoverApis(
         content: [
           {
             type: "text",
-            text: `No OpenAPI specifications found in ${workspacePath}.\n\nTo get started:\n1. Make sure you have OpenAPI/Swagger files with extensions .yaml, .yml, or .json\n2. Ensure the files contain valid OpenAPI specifications\n3. Try placing a file named 'openapi.yaml' or 'swagger.json' in your project root`,
+            text: `❌ **No OpenAPI specifications found in ${workspacePath}**\n\n**What to check:**\n1. Ensure you have OpenAPI/Swagger files with extensions .yaml, .yml, or .json\n2. Verify the files contain valid OpenAPI specifications (version 2.0 or 3.x)\n3. Check file permissions and accessibility\n\n**Common filenames to look for:**\n- openapi.yaml, openapi.json\n- swagger.yaml, swagger.json\n- api-spec.yaml, api-docs.json\n- Any file with OpenAPI schema inside\n\n**Next steps:**\n1. Try placing an OpenAPI file in your project root\n2. Use recursive=true to search subdirectories\n3. Check if you have remote APIs with include_remote=true`,
           } as TextContent,
         ],
       };
     }
 
-    let response = `## Discovered ${apis.length} OpenAPI specification${
+    let response = `✅ **Discovered ${apis.length} OpenAPI specification${
       apis.length > 1 ? "s" : ""
-    }\n\n`;
+    }**\n\n`;
 
     for (const api of apis) {
       response += `### ${api.title} (v${api.version})\n`;
@@ -82,14 +82,17 @@ export async function discoverApis(
       response += `\n---\n\n`;
     }
 
-    response += `## Next Steps\n\n`;
-    response += `You can now use these APIs with the following tools:\n\n`;
-    response += `1. **List Operations**: Use \`list_operations\` to see all available operations for an API\n`;
-    response += `2. **Describe API**: Use \`describe_api\` to get detailed information about specific operations\n`;
-    response += `3. **Call API**: Use \`call_api\` to execute API operations\n`;
-    response += `4. **Manage Auth**: Use \`manage_auth\` to configure authentication for APIs that require it\n\n`;
-    response += `Example: To list all operations for ${apis[0].title}, use:\n`;
-    response += `\`\`\`\nlist_operations api_source="${apis[0].path}"\n\`\`\``;
+    response += `## 🚀 Quick Start Guide\n\n`;
+    response += `Now that APIs are discovered, follow these steps:\n\n`;
+    response += `**Step 1 - Explore Operations:**\n`;
+    response += `\`\`\`\nlist_operations api_source="${apis[0].path}"\n\`\`\`\n\n`;
+    response += `**Step 2 - Get Operation Details:**\n`;
+    response += `\`\`\`\ndescribe_api api_source="${apis[0].path}" operation_id="OPERATION_ID"\n\`\`\`\n\n`;
+    response += `**Step 3 - Configure Authentication (if needed):**\n`;
+    response += `\`\`\`\nmanage_auth api_source="${apis[0].path}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
+    response += `**Step 4 - Make API Calls:**\n`;
+    response += `\`\`\`\ncall_api api_source="${apis[0].path}" operation_id="OPERATION_ID" parameters='{"param": "value"}'\n\`\`\`\n\n`;
+    response += `💡 **Tip:** Use the exact \`api_source\` paths shown above in subsequent tool calls.`;
 
     return {
       content: [

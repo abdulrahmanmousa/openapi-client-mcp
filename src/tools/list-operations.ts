@@ -191,14 +191,15 @@ export async function listOperations(
       }
     }
 
-    response += `## Next Steps\n\n`;
-    response += `1. **Call an operation**: Use \`call_api\` with the desired \`operation_id\`\n`;
-    response += `2. **Get more details**: Use \`describe_api\` for detailed parameter information\n`;
-    response += `3. **Set up authentication**: Use \`manage_auth\` if the API requires authentication\n\n`;
-    response += `**Example:** Call the first operation:\n`;
-    response += `\`\`\`\n`;
-    response += `call_api api_source="${params.api_source}" operation_id="${operations[0].operationId}"\n`;
-    response += `\`\`\``;
+    response += `## 🚀 Next Steps\n\n`;
+    response += `**Ready to use this API? Here's your action plan:**\n\n`;
+    response += `**1. Get operation details (recommended):**\n`;
+    response += `\`\`\`\ndescribe_api api_source="${params.api_source}" operation_id="OPERATION_ID"\n\`\`\`\n\n`;
+    response += `**2. Set up authentication (if required):**\n`;
+    response += `\`\`\`\nmanage_auth api_source="${params.api_source}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
+    response += `**3. Execute an operation:**\n`;
+    response += `\`\`\`\ncall_api api_source="${params.api_source}" operation_id="${operations[0].operationId}"\n\`\`\`\n\n`;
+    response += `💡 **Pro tip:** Use \`describe_api\` first to understand parameter requirements before calling operations.`;
 
     return {
       content: [
