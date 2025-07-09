@@ -1,209 +1,85 @@
 # Universal OpenAPI MCP
 
+[![npm version](https://badge.fury.io/js/openapi-client-mcp.svg)](https://badge.fury.io/js/openapi-client-mcp)
+[![npm downloads](https://img.shields.io/npm/dm/openapi-client-mcp.svg)](https://www.npmjs.com/package/openapi-client-mcp)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A powerful Model Context Protocol (MCP) server that provides universal OpenAPI integration. **One MCP installation that works with ANY OpenAPI specification** - no more generating separate MCPs for each API!
 
 ## 🚀 Key Features
 
-- **🔍 Auto-Discovery**: Automatically finds OpenAPI/Swagger files in your workspace
 - **🌐 Universal Compatibility**: Works with any valid OpenAPI 2.0/3.0/3.1 specification
 - **🔧 Dynamic Operation**: No pre-generation needed - parses and executes APIs in real-time
-- **🔐 Authentication Support**: API Key, Bearer Token, Basic Auth, and OAuth2
-- **📁 File Watching**: Real-time updates when OpenAPI files change
+- **🔐 Authentication & Session Persistence**: Secure handling of authentication and session persistence
 - **🌍 Remote APIs**: Support for both local files and remote OpenAPI URLs
 - **📖 Rich Documentation**: Detailed operation descriptions and usage examples
 
 ## 📦 Installation
 
 ```bash
-npm install
-npm run build
+npm install -g openapi-client-mcp
 ```
 
-## 🛠️ Available Tools
+## ⚡ Quick Use
 
-### 1. `discover_apis`
+Once configured, simply tell your AI assistant what you want to do:
 
-Auto-discover OpenAPI specifications in your workspace.
+### Example Conversations:
 
-```typescript
-discover_apis {
-  workspace_path?: string,    // Optional: specific path to search
-  recursive?: boolean,        // Default: true
-  include_remote?: boolean    // Default: false
-}
-```
+**"My API is at https://petstore.swagger.io/v2/swagger.json OR "./schema.yml""** 
+- The MCP will discover the OpenAPI spec and call the appropriate endpoint
 
-### 2. `call_api`
+**"Call the POST /users endpoint with name 'John' and email 'john@example.com'"**
+- Automatically finds the endpoint and formats the request
 
-Execute API operations from any OpenAPI specification.
+**"List all available endpoints from my Stripe API"**
+- Discovers and shows all operations from the API specification
 
-```typescript
-call_api {
-  docs_path: string,              // Path to OpenAPI file or URL
-  operation_id: string,            // Operation ID from the spec
-  parameters?: Record<string, any>, // Operation parameters
-  auth_config?: Record<string, string> // Optional auth config
-}
-```
+**"Set up authentication for my API using API key 'sk-123...'"**
+- Configures authentication and remembers it for future calls
 
-### 3. `list_operations`
+### Natural Language → API Calls
+Just describe what you want in plain English:
+- ✅ "Get user by ID 123"
+- ✅ "Create a new product with name and price"
+- ✅ "Update customer email address"
+- ✅ "Delete order 456"
 
-List all available operations from an OpenAPI spec with filtering.
+No need to know exact endpoint names or parameter formats!
 
-```typescript
-list_operations {
-  docs_path: string,    // Path to OpenAPI file or URL
-  tag?: string,          // Optional: filter by tag
-  method?: string        // Optional: filter by HTTP method
-}
-```
+### 🔐 Smart Session Management
+The MCP helps you authenticate and **remembers your login even after restart**:
+- **Login once**: "Help me login to my API with OAuth/API key"
+- **Persistent sessions**: Your authentication is safely stored
+- **Auto-reconnect**: Sessions work across MCP restarts
+- **Multiple APIs**: Manage sessions for different APIs simultaneously
 
-### 4. `describe_api`
+## ⚙️ Installation
 
-Get detailed information about an API or specific operation.
-
-```typescript
-describe_api {
-  docs_path: string,        // Path to OpenAPI file or URL
-  operation_id?: string      // Optional: specific operation to describe
-}
-```
-
-### 5. `manage_auth`
-
-Configure authentication for API calls.
-
-```typescript
-manage_auth {
-  docs_path: string,                           // Path to OpenAPI file or URL
-  auth_type: 'apiKey' | 'bearer' | 'basic' | 'oauth2',
-  config: Record<string, string>                // Auth configuration
-}
-```
-
-## 🎯 Usage Examples
-
-### Discover APIs in your project
-
-```bash
-discover_apis workspace_path="./my-project" recursive=true
-```
-
-### List all operations from a Petstore API
-
-```bash
-list_operations docs_path="./petstore.yaml"
-```
-
-### Call an API operation
-
-```bash
-call_api docs_path="./petstore.yaml" operation_id="listPets" parameters='{"limit": 10}'
-```
-
-### Set up API key authentication
-
-```bash
-manage_auth docs_path="./petstore.yaml" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key-here"}'
-```
-
-### Call authenticated API
-
-```bash
-call_api docs_path="./petstore.yaml" operation_id="createPet" parameters='{"body": {"name": "Fluffy", "tag": "cat"}}'
-```
-
-## 🔐 Authentication Types
-
-### API Key Authentication
+Add to your MCP client (e.g., Claude Desktop, Cursor, VS Code):
 
 ```json
 {
-  "auth_type": "apiKey",
-  "config": {
-    "headerName": "X-API-Key",
-    "apiKey": "your-api-key"
+  "mcpServers": {
+    "openapi-client-mcp": {
+      "command": "openapi-client-mcp"
+    }
   }
 }
 ```
 
-### Bearer Token Authentication
-
+**Alternative (no installation):**
 ```json
 {
-  "auth_type": "bearer",
-  "config": {
-    "token": "your-bearer-token"
+  "mcpServers": {
+    "openapi-client-mcp": {
+      "command": "npx",
+      "args": ["openapi-client-mcp"]
+    }
   }
 }
 ```
 
-### Basic Authentication
-
-```json
-{
-  "auth_type": "basic",
-  "config": {
-    "username": "your-username",
-    "password": "your-password"
-  }
-}
-```
-
-### OAuth2 Authentication
-
-```json
-{
-  "auth_type": "oauth2",
-  "config": {
-    "accessToken": "your-oauth2-token"
-  }
-}
-```
-
-## 🏗️ Architecture
-
-```
-src/
-├── index.ts              # Main MCP server
-├── tools/                # Tool implementations
-│   ├── discover-apis.ts  # API discovery tool
-│   ├── call-api.ts       # API calling tool
-│   ├── list-operations.ts # Operations listing tool
-│   ├── describe-api.ts   # API description tool
-│   └── manage-auth.ts    # Authentication management
-├── utils/                # Utility classes
-│   ├── discovery.ts      # OpenAPI file discovery
-│   └── http-client.ts    # HTTP client for API calls
-└── types/                # TypeScript definitions
-    └── index.ts          # Type definitions and schemas
-```
-
-## 🚀 Quick Start
-
-1. **Install and build the MCP**:
-
-   ```bash
-   npm install && npm run build
-   ```
-
-2. **Add to your MCP client configuration** (e.g., Claude Desktop):
-
-   ```json
-   {
-     "mcpServers": {
-       "openapi-client-mcp": {
-         "command": "node",
-         "args": ["/absolute/path/to/openapi-client-mcp/dist/index.js"]
-       }
-     }
-   }
-   ```
-
-3. **Start using it**:
-   - "Discover APIs in my current project"
-   - "List operations from my API specification"
-   - "Call the createUser operation from my users API"
 
 ## 🔍 Supported OpenAPI Features
 
@@ -225,17 +101,20 @@ src/
 
 - Input validation with Zod schemas
 - Secure parameter handling
-- Authentication credential masking in logs
-- Safe file system access
 - No arbitrary code execution
 
 ## 🤝 Contributing
 
-1. Fork the repository
+1. Fork the [repository](https://github.com/abdulrahmanmousa/openapi-client-mcp)
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+4. Submit a pull request
+
+## 🔗 Links
+
+- [npm Package](https://www.npmjs.com/package/openapi-client-mcp)
+- [GitHub Repository](https://github.com/abdulrahmanmousa/openapi-client-mcp)
+- [Report Issues](https://github.com/abdulrahmanmousa/openapi-client-mcp/issues)
 
 ## 📄 License
 
@@ -243,29 +122,16 @@ MIT License - see LICENSE file for details.
 
 ## 🆘 Troubleshooting
 
-### MCP Server Not Found
+**MCP Server Not Found:**
+- Ensure global install: `npm install -g openapi-client-mcp`
+- Try npx instead: Use the npx configuration above
+- Check Node.js >=18.0.0 is installed
 
-- Ensure the path in your MCP client configuration is absolute
-- Verify the build completed successfully (`npm run build`)
-- Check that Node.js is installed and accessible
+**OpenAPI File Not Detected:**
+- File must have `.yaml`, `.yml`, or `.json` extension
+- File must contain valid OpenAPI specification
 
-### OpenAPI File Not Detected
-
-- Ensure your file has a `.yaml`, `.yml`, or `.json` extension
-- Verify the file contains valid OpenAPI specification
-- Check the file includes required fields like `openapi` or `swagger` version
-
-### API Calls Failing
-
-- Verify the base URL is correct in your OpenAPI spec
-- Check if the API requires authentication (`manage_auth` tool)
-- Ensure required parameters are provided
-- Check network connectivity to the API server
-
-### Authentication Issues
-
-- Verify the authentication configuration is correct for your API
-- Check that API keys/tokens are valid and not expired
-- Ensure the authentication type matches what the API expects
-
-For more help, check the error messages - they're designed to be helpful and actionable!
+**API Calls Failing:**
+- Check base URL in your OpenAPI spec
+- Use `manage_auth` tool for authentication
+- Verify required parameters are provided

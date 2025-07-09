@@ -23,7 +23,8 @@
     "universal",
     "dynamic",
     "rest-api",
-    "claude"
+    "claude",
+    "backend"
   ],
   "files": [
     "dist/",
