@@ -5,7 +5,10 @@ import {
 import * as path from "path";
 import type { DescribeApiParams } from "../types/index.js";
 import { OpenApiDiscovery } from "../utils/discovery.js";
-import { formatOperationDetails } from "../utils/formatters.js";
+import {
+  formatOperationDetails,
+  formatQueryParameters,
+} from "../utils/formatters.js";
 
 export async function describeApi(
   params: DescribeApiParams
@@ -61,6 +64,7 @@ export async function describeApi(
 
       // Detailed operation description
       let response = formatOperationDetails(operation, params.docs_path);
+      response += formatQueryParameters(operation.parameters ?? []);
       return {
         content: [
           {

@@ -5,7 +5,7 @@ import {
 import * as path from "path";
 import type { AuthConfig, CallApiParams } from "../types/index.js";
 import { OpenApiDiscovery } from "../utils/discovery.js";
-import { formatSchema } from "../utils/formatters.js";
+import { formatQueryParameters, formatSchema } from "../utils/formatters.js";
 import { getHttpClient } from "./manage-auth.js";
 
 export async function callApi(params: CallApiParams): Promise<CallToolResult> {
@@ -195,6 +195,7 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
         response += `\`\`\`json\n${formatSchema(result.data)}\n\`\`\`\n`;
       }
     }
+    response += formatQueryParameters(operation.parameters ?? []);
     return {
       content: [
         {

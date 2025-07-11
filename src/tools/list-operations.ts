@@ -7,6 +7,7 @@ import type { ListOperationsParams } from "../types/index.js";
 import { OpenApiDiscovery } from "../utils/discovery.js";
 import {
   formatParameters,
+  formatQueryParameters,
   formatRequestBody,
   formatUsageExample,
 } from "../utils/formatters.js";
@@ -123,6 +124,7 @@ export async function listOperations(
         response += formatParameters(op.parameters ?? []);
         response += formatRequestBody(op.requestBody);
         response += formatUsageExample(op, params.docs_path);
+        response += formatQueryParameters(op.parameters ?? []);
         response += `---\n\n`;
       }
     }
