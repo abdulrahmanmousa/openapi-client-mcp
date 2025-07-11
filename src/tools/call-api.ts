@@ -5,6 +5,7 @@ import {
 import * as path from "path";
 import type { AuthConfig, CallApiParams } from "../types/index.js";
 import { OpenApiDiscovery } from "../utils/discovery.js";
+import { safeClone } from "../utils/safe-clone.js";
 import { getHttpClient } from "./manage-auth.js";
 
 export async function callApi(params: CallApiParams): Promise<CallToolResult> {
@@ -192,13 +193,12 @@ export async function callApi(params: CallApiParams): Promise<CallToolResult> {
         response += `\`\`\`\n${result.data}\n\`\`\`\n`;
       } else {
         response += `\`\`\`json\n${JSON.stringify(
-          result.data,
+          safeClone(result.data),
           null,
           2
         )}\n\`\`\`\n`;
       }
     }
-
     return {
       content: [
         {

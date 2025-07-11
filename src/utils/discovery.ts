@@ -1,3 +1,5 @@
+// Uses @redocly/openapi-core bundle/bundleFromString for robust dereferencing.
+import { bundle, bundleFromString, createConfig } from "@redocly/openapi-core";
 import chokidar, { type FSWatcher } from "chokidar";
 import * as fs from "fs/promises";
 import { glob } from "glob";
@@ -93,14 +95,12 @@ export class OpenApiDiscovery {
 
   async parseOpenApiFile(filePath: string): Promise<ApiInfo | null> {
     try {
-      const content = await fs.readFile(filePath, "utf8");
-      const spec = this.parseContent(content) as OpenAPIDocument;
-
-      if (!spec) {
-        return null;
-      }
-
-      return this.extractApiInfo(spec, filePath);
+      const config = await createConfig({});
+      const {
+        bundle: { parsed },
+      } = await bundle({ ref: filePath, config, dereference: true });
+      if (!parsed) return null;
+      return this.extractApiInfo(parsed, filePath);
     } catch (error) {
       console.error(`Error parsing OpenAPI file ${filePath}:`, error);
       return null;
@@ -113,15 +113,17 @@ export class OpenApiDiscovery {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-
       const content = await response.text();
-      const spec = this.parseContent(content) as OpenAPIDocument;
-
-      if (!spec) {
-        return null;
-      }
-
-      return this.extractApiInfo(spec, url, true);
+      const config = await createConfig({});
+      const {
+        bundle: { parsed },
+      } = await bundleFromString({
+        source: content,
+        config,
+        dereference: true,
+      });
+      if (!parsed) return null;
+      return this.extractApiInfo(parsed, url, true);
     } catch (error) {
       console.error(`Error fetching OpenAPI from URL ${url}:`, error);
       return null;
@@ -149,12 +151,12 @@ export class OpenApiDiscovery {
   ): ApiInfo {
     const operations = this.extractOperations(spec);
     const servers = this.extractServers(spec);
-
+    const info = spec.info || {};
     return {
       path: source,
-      title: spec.info.title,
-      version: spec.info.version,
-      description: spec.info.description,
+      title: info.title,
+      version: info.version,
+      description: info.description,
       servers,
       isRemote,
       operations,
@@ -163,14 +165,11 @@ export class OpenApiDiscovery {
 
   private extractOperations(spec: OpenAPIDocument): OperationInfo[] {
     const operations: OperationInfo[] = [];
-
     if (!spec.paths) {
       return operations;
     }
-
     for (const [path, pathItem] of Object.entries(spec.paths)) {
       if (!pathItem || typeof pathItem !== "object") continue;
-
       const methods = [
         "get",
         "post",
@@ -181,12 +180,10 @@ export class OpenApiDiscovery {
         "options",
         "trace",
       ];
-
       for (const method of methods) {
         const operation = (pathItem as any)[method];
         if (!operation) continue;
-
-        const operationInfo: OperationInfo = {
+        operations.push({
           operationId:
             operation.operationId ||
             `${method}_${path.replace(/[^a-zA-Z0-9]/g, "_")}`,
@@ -201,12 +198,9 @@ export class OpenApiDiscovery {
           ),
           requestBody: this.extractRequestBody(operation.requestBody),
           responses: this.extractResponses(operation.responses),
-        };
-
-        operations.push(operationInfo);
+        });
       }
     }
-
     return operations;
   }
 
@@ -226,13 +220,10 @@ export class OpenApiDiscovery {
 
   private extractRequestBody(requestBody: any): any {
     if (!requestBody) return undefined;
-
     const content = requestBody.content;
     if (!content) return undefined;
-
     const contentType = Object.keys(content)[0];
     const mediaType = content[contentType];
-
     return {
       required: requestBody.required || false,
       contentType,
@@ -243,43 +234,37 @@ export class OpenApiDiscovery {
 
   private extractResponses(responses: any): Record<string, any> {
     if (!responses) return {};
-
     const extracted: Record<string, any> = {};
-
     for (const [status, response] of Object.entries(responses)) {
       if (!response || typeof response !== "object") continue;
-
       const resp = response as any;
       let contentType: string | undefined;
       let schema: any;
-
       if (resp.content) {
         contentType = Object.keys(resp.content)[0];
         const mediaType = resp.content[contentType];
         schema = mediaType?.schema;
       }
-
       extracted[status] = {
         description: resp.description || "No description",
         contentType,
         schema,
       };
     }
-
     return extracted;
   }
 
   private extractServers(spec: OpenAPIDocument): string[] {
-    if ("servers" in spec && spec.servers) {
-      return spec.servers.map((server) => server.url);
+    const servers = (spec as any).servers;
+    if (servers && Array.isArray(servers)) {
+      return servers.map((server: any) => server.url);
     }
-
-    if ("host" in spec && spec.host) {
+    const host = (spec as any).host;
+    if (host) {
       const protocol = (spec as any).schemes?.[0] || "https";
       const basePath = (spec as any).basePath || "";
-      return [`${protocol}://${spec.host}${basePath}`];
+      return [`${protocol}://${host}${basePath}`];
     }
-
     return [];
   }
 

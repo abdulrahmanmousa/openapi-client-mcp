@@ -1,6 +1,6 @@
 {
   "name": "openapi-client-mcp",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Universal Dynamic OpenAPI MCP Server - One MCP that works with any OpenAPI specification",
   "type": "module",
   "main": "dist/index.js",
@@ -47,14 +47,17 @@
     "url": "https://github.com/abdulrahmanmoussa/openapi-client-mcp/issues"
   },
   "devDependencies": {
+    "openapi-typescript": "^7.8.0",
     "typescript": "^5.8.3"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.15.0",
+    "@redocly/openapi-core": "^1.34.3",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.0.12",
     "chokidar": "^4.0.3",
     "fast-glob": "^3.3.3",
+    "flatted": "^3.3.3",
     "glob": "^11.0.3",
     "js-yaml": "^4.1.0",
     "node-fetch": "^3.3.2",

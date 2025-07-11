@@ -1,0 +1,67 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Structure and Rules for openapi-client-mcp
+
+## Overview
+This project implements a Universal Dynamic OpenAPI MCP Server, enabling dynamic interaction with any OpenAPI specification. The main entry point is [`src/index.ts`](mdc:src/index.ts), which registers and dispatches all tool handlers.
+
+## Directory Structure
+- [`src/`](mdc:src): Main source code
+  - [`tools/`](mdc:src/tools): Implements all MCP tools (API operations, session, auth, discovery, etc.)
+    - `call-api.ts`: Executes API operations
+    - `describe-api.ts`: Describes API operations and parameters
+    - `discover-apis.ts`: Scans for OpenAPI specs in the workspace
+    - `init-api.ts`: Initializes API sessions
+    - `list-operations.ts`: Lists available API operations
+    - `manage-auth.ts`: Manages authentication for APIs
+    - `manage-session.ts`: Handles session management
+  - [`utils/`](mdc:src/utils): Utility modules
+    - `discovery.ts`: OpenAPI file/url discovery and parsing
+    - `http-client.ts`: HTTP client for making API requests with auth
+    - `session-manager.ts`: Persistent session and auth storage
+  - [`types/`](mdc:src/types): Type definitions and zod schemas for tool parameters and OpenAPI models
+    - `index.ts`: All shared types and schemas
+- [`dist/`](mdc:dist): Compiled output
+- [`example-petstore.yaml`](mdc:example-petstore.yaml): Example OpenAPI spec
+
+## Tooling and Workflow
+- All user-facing actions are implemented as tools in [`src/tools/`](mdc:src/tools), each with a clear responsibility (API call, session, auth, etc.).
+- Tool parameter validation and types are defined in [`src/types/index.ts`](mdc:src/types/index.ts) using zod.
+- Session and authentication state is persisted in the user's home directory under `.openapi-client-mcp/sessions.json`.
+- OpenAPI discovery supports both local files and remote URLs.
+
+## Coding Conventions
+- Always use `type` before imported types (e.g., `import { type X } from '...'`).
+- Do not write comments in code unless explicitly requested.
+- Do not change existing code unless necessary and confirmed by the user.
+- Use `pnpm` for package management; do not specify package versions.
+- Do not add documentation or example/demo files.
+- For API calls, use the openapi-client-mcp tool, not fetch.
+- For browser navigation, use the browser tools mcp.
+
+## Main Entry Point
+- [`src/index.ts`](mdc:src/index.ts) registers all tools and dispatches requests based on tool name and parameters.
+- The decision tree for tool selection is documented at the top of [`src/index.ts`](mdc:src/index.ts).
+
+## Type System
+- All tool parameters and OpenAPI models are strongly typed using zod and TypeScript types in [`src/types/index.ts`](mdc:src/types/index.ts).
+
+## Session and Auth
+- Sessions are managed and persisted via [`src/utils/session-manager.ts`](mdc:src/utils/session-manager.ts).
+- Auth configs are managed via [`src/utils/http-client.ts`](mdc:src/utils/http-client.ts) and [`src/tools/manage-auth.ts`](mdc:src/tools/manage-auth.ts).
+
+## OpenAPI Discovery
+- OpenAPI specs are discovered and parsed using [`src/utils/discovery.ts`](mdc:src/utils/discovery.ts).
+- Both local and remote OpenAPI specs are supported.
+
+## Tool List
+- `init_api`: Initialize API session
+- `manage_session`: Manage API sessions
+- `discover_apis`: Find OpenAPI specs in workspace
+- `list_operations`: List API operations
+- `describe_api`: Get operation details
+- `manage_auth`: Configure authentication
+- `call_api`: Execute API operation

@@ -2,9 +2,11 @@ import {
   CallToolResult,
   TextContent,
 } from "@modelcontextprotocol/sdk/types.js";
+import { stringify as flattedStringify } from "flatted";
 import * as path from "path";
 import type { DescribeApiParams } from "../types/index.js";
 import { OpenApiDiscovery } from "../utils/discovery.js";
+import { safeClone } from "../utils/safe-clone.js";
 
 export async function describeApi(
   params: DescribeApiParams
@@ -43,6 +45,7 @@ export async function describeApi(
       const operation = apiInfo.operations.find(
         (op) => op.operationId === params.operation_id
       );
+
       if (!operation) {
         const availableOps = apiInfo.operations
           .map((op) => op.operationId)
@@ -144,10 +147,8 @@ export async function describeApi(
 
         if (operation.requestBody.schema) {
           response += `\n**Schema:**\n`;
-          response += `\`\`\`json\n${JSON.stringify(
-            operation.requestBody.schema,
-            null,
-            2
+          response += `\`\`\`json\n${flattedStringify(
+            safeClone(operation.requestBody.schema)
           )}\n\`\`\`\n`;
         }
         response += `\n`;
@@ -167,10 +168,8 @@ export async function describeApi(
 
           if (resp.schema) {
             response += `\n**Schema:**\n`;
-            response += `\`\`\`json\n${JSON.stringify(
-              resp.schema,
-              null,
-              2
+            response += `\`\`\`json\n${flattedStringify(
+              safeClone(resp.schema)
             )}\n\`\`\`\n`;
           }
           response += `\n`;
@@ -183,7 +182,8 @@ export async function describeApi(
       response += `call_api docs_path="${params.docs_path}" operation_id="${operation.operationId}"`;
 
       if (operation.parameters && operation.parameters.length > 0) {
-        response += ` parameters='{\n`;
+        response += ` parameters='{
+`;
         const exampleParams: string[] = [];
 
         for (const param of operation.parameters) {
@@ -197,7 +197,7 @@ export async function describeApi(
               else if (param.schema.enum)
                 exampleValue = `"${param.schema.enum[0]}"`;
               else if (param.schema.example)
-                exampleValue = JSON.stringify(param.schema.example);
+                exampleValue = JSON.stringify(safeClone(param.schema.example));
               else exampleValue = `"example_${param.name}"`;
             }
             exampleParams.push(
