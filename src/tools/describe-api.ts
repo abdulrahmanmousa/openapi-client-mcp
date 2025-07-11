@@ -2,11 +2,10 @@ import {
   CallToolResult,
   TextContent,
 } from "@modelcontextprotocol/sdk/types.js";
-import { stringify as flattedStringify } from "flatted";
 import * as path from "path";
 import type { DescribeApiParams } from "../types/index.js";
 import { OpenApiDiscovery } from "../utils/discovery.js";
-import { safeClone } from "../utils/safe-clone.js";
+import { formatOperationDetails } from "../utils/formatters.js";
 
 export async function describeApi(
   params: DescribeApiParams
@@ -61,171 +60,7 @@ export async function describeApi(
       }
 
       // Detailed operation description
-      let response = `# ${operation.operationId}\n\n`;
-      response += `**${operation.method}** \`${operation.path}\`\n\n`;
-
-      if (operation.summary) {
-        response += `## Summary\n${operation.summary}\n\n`;
-      }
-
-      if (
-        operation.description &&
-        operation.description !== operation.summary
-      ) {
-        response += `## Description\n${operation.description}\n\n`;
-      }
-
-      if (operation.tags && operation.tags.length > 0) {
-        response += `**Tags:** ${operation.tags.join(", ")}\n\n`;
-      }
-
-      // Parameters
-      if (operation.parameters && operation.parameters.length > 0) {
-        response += `## Parameters\n\n`;
-
-        const paramsByLocation: Record<string, typeof operation.parameters> =
-          {};
-        for (const param of operation.parameters) {
-          if (!paramsByLocation[param.in]) {
-            paramsByLocation[param.in] = [];
-          }
-          paramsByLocation[param.in].push(param);
-        }
-
-        for (const [location, params] of Object.entries(paramsByLocation)) {
-          response += `### ${
-            location.charAt(0).toUpperCase() + location.slice(1)
-          } Parameters\n\n`;
-
-          for (const param of params) {
-            response += `#### \`${param.name}\`\n`;
-            response += `- **Required:** ${param.required ? "Yes" : "No"}\n`;
-
-            if (param.schema) {
-              response += `- **Type:** ${param.schema.type || "any"}\n`;
-              if (param.schema.format) {
-                response += `- **Format:** ${param.schema.format}\n`;
-              }
-              if (param.schema.enum) {
-                response += `- **Allowed Values:** ${param.schema.enum.join(
-                  ", "
-                )}\n`;
-              }
-              if (param.schema.minimum !== undefined) {
-                response += `- **Minimum:** ${param.schema.minimum}\n`;
-              }
-              if (param.schema.maximum !== undefined) {
-                response += `- **Maximum:** ${param.schema.maximum}\n`;
-              }
-              if (param.schema.pattern) {
-                response += `- **Pattern:** \`${param.schema.pattern}\`\n`;
-              }
-              if (param.schema.example !== undefined) {
-                response += `- **Example:** \`${param.schema.example}\`\n`;
-              }
-            }
-
-            if (param.description) {
-              response += `- **Description:** ${param.description}\n`;
-            }
-            response += `\n`;
-          }
-        }
-      }
-
-      // Request Body
-      if (operation.requestBody) {
-        response += `## Request Body\n\n`;
-        response += `- **Required:** ${
-          operation.requestBody.required ? "Yes" : "No"
-        }\n`;
-        response += `- **Content-Type:** \`${operation.requestBody.contentType}\`\n`;
-
-        if (operation.requestBody.description) {
-          response += `- **Description:** ${operation.requestBody.description}\n`;
-        }
-
-        if (operation.requestBody.schema) {
-          response += `\n**Schema:**\n`;
-          response += `\`\`\`json\n${flattedStringify(
-            safeClone(operation.requestBody.schema)
-          )}\n\`\`\`\n`;
-        }
-        response += `\n`;
-      }
-
-      // Responses
-      if (operation.responses && Object.keys(operation.responses).length > 0) {
-        response += `## Responses\n\n`;
-
-        for (const [status, resp] of Object.entries(operation.responses)) {
-          response += `### ${status}\n`;
-          response += `${resp.description}\n`;
-
-          if (resp.contentType) {
-            response += `**Content-Type:** \`${resp.contentType}\`\n`;
-          }
-
-          if (resp.schema) {
-            response += `\n**Schema:**\n`;
-            response += `\`\`\`json\n${flattedStringify(
-              safeClone(resp.schema)
-            )}\n\`\`\`\n`;
-          }
-          response += `\n`;
-        }
-      }
-
-      // Usage example
-      response += `## Usage Example\n\n`;
-      response += `\`\`\`\n`;
-      response += `call_api docs_path="${params.docs_path}" operation_id="${operation.operationId}"`;
-
-      if (operation.parameters && operation.parameters.length > 0) {
-        response += ` parameters='{
-`;
-        const exampleParams: string[] = [];
-
-        for (const param of operation.parameters) {
-          if (param.required) {
-            let exampleValue = "value";
-            if (param.schema) {
-              if (param.schema.type === "integer") exampleValue = "123";
-              else if (param.schema.type === "boolean") exampleValue = "true";
-              else if (param.schema.type === "array")
-                exampleValue = '["item1", "item2"]';
-              else if (param.schema.enum)
-                exampleValue = `"${param.schema.enum[0]}"`;
-              else if (param.schema.example)
-                exampleValue = JSON.stringify(safeClone(param.schema.example));
-              else exampleValue = `"example_${param.name}"`;
-            }
-            exampleParams.push(
-              `  "${param.name}": ${exampleValue}  // ${
-                param.description || "Required parameter"
-              }`
-            );
-          }
-        }
-
-        response += exampleParams.join(",\n");
-        response += `\n}'`;
-      }
-
-      response += `\n\`\`\`\n\n`;
-
-      response += `## 🚀 Ready to Call This Operation?\n\n`;
-      response += `**Step 1 - Set up authentication (if needed):**\n`;
-      response += `\`\`\`\nmanage_auth docs_path="${params.docs_path}" auth_type="apiKey" config='{"headerName": "X-API-Key", "apiKey": "your-key"}'\n\`\`\`\n\n`;
-      response += `**Step 2 - Execute the operation:**\n`;
-      response += `Copy the usage example above and customize the parameters for your needs.\n\n`;
-      response += `**Step 3 - Explore related operations:**\n`;
-      response += `\`\`\`\nlist_operations docs_path="${params.docs_path}"`;
-      if (operation.tags && operation.tags.length > 0) {
-        response += ` tag="${operation.tags[0]}"`;
-      }
-      response += `\n\`\`\``;
-
+      let response = formatOperationDetails(operation, params.docs_path);
       return {
         content: [
           {

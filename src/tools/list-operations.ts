@@ -5,6 +5,11 @@ import {
 import * as path from "path";
 import type { ListOperationsParams } from "../types/index.js";
 import { OpenApiDiscovery } from "../utils/discovery.js";
+import {
+  formatParameters,
+  formatRequestBody,
+  formatUsageExample,
+} from "../utils/formatters.js";
 
 export async function listOperations(
   params: ListOperationsParams
@@ -109,84 +114,15 @@ export async function listOperations(
       for (const op of tagOperations) {
         response += `### \`${op.operationId}\`\n`;
         response += `**${op.method}** \`${op.path}\`\n\n`;
-
         if (op.summary) {
           response += `${op.summary}\n\n`;
         }
-
         if (op.description && op.description !== op.summary) {
           response += `${op.description}\n\n`;
         }
-
-        // Parameters
-        if (op.parameters && op.parameters.length > 0) {
-          response += `**Parameters:**\n`;
-          for (const param of op.parameters) {
-            response += `  - \`${param.name}\` (${param.in}) - ${
-              param.required ? "**required**" : "optional"
-            }`;
-            if (param.description) {
-              response += ` - ${param.description}`;
-            }
-            response += `\n`;
-          }
-          response += `\n`;
-        }
-
-        // Request body
-        if (op.requestBody) {
-          response += `**Request Body:** ${
-            op.requestBody.required ? "**required**" : "optional"
-          }\n`;
-          if (op.requestBody.description) {
-            response += `  ${op.requestBody.description}\n`;
-          }
-          response += `  Content-Type: \`${op.requestBody.contentType}\`\n\n`;
-        }
-
-        // Responses
-        if (op.responses && Object.keys(op.responses).length > 0) {
-          response += `**Responses:**\n`;
-          for (const [status, resp] of Object.entries(op.responses)) {
-            response += `  - **${status}**: ${resp.description}`;
-            if (resp.contentType) {
-              response += ` (\`${resp.contentType}\`)`;
-            }
-            response += `\n`;
-          }
-          response += `\n`;
-        }
-
-        response += `**Usage Example:**\n`;
-        response += `\`\`\`\n`;
-        response += `call_api docs_path="${params.docs_path}" operation_id="${op.operationId}"`;
-
-        // Add example parameters
-        if (op.parameters && op.parameters.length > 0) {
-          response += ` parameters='{\n`;
-          const exampleParams: string[] = [];
-          for (const param of op.parameters.slice(0, 3)) {
-            // Show first 3 params
-            let exampleValue = "value";
-            if (param.schema) {
-              if (param.schema.type === "integer") exampleValue = "123";
-              else if (param.schema.type === "boolean") exampleValue = "true";
-              else if (param.schema.type === "array")
-                exampleValue = '["item1", "item2"]';
-              else if (param.schema.enum)
-                exampleValue = `"${param.schema.enum[0]}"`;
-              else exampleValue = `"example_${param.name}"`;
-            }
-            exampleParams.push(`  "${param.name}": ${exampleValue}`);
-          }
-          response += exampleParams.join(",\n");
-          if (op.parameters.length > 3) {
-            response += `,\n  // ... other parameters`;
-          }
-          response += `\n}'`;
-        }
-
-        response += `\n\`\`\`\n\n`;
+        response += formatParameters(op.parameters ?? []);
+        response += formatRequestBody(op.requestBody);
+        response += formatUsageExample(op, params.docs_path);
         response += `---\n\n`;
       }
     }
